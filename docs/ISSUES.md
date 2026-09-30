@@ -63,3 +63,17 @@ Installed MLX 0.32.3 documents that its free allocator cache defaults to the mem
 ### Cache-fix verification and remaining gate
 
 Codex / GPT-6 (root): all selftests passed, including exactly equal tiny-model MCQ/PPL outputs and allocator-policy restoration after success/exception. Native bounded probe: 16 prior psychiatry rows exactly identical; another 100 general items scored; peak 1.983 GiB, no swap increase across ten samples. No full-model unbounded reproduction was attempted. Cache retention remains the working hypothesis. Approximately 5.34 GiB old swap still exceeds the unchanged formal launch gate; requested owner-controlled reboot. Frozen exam/source/training hashes preserved.
+
+## Bounded R0 recovery with decaying residual swap
+
+2026-09-30, decision by Codex / GPT-6 (root), before retry. Owner reports swap falling to about 2.5 GiB. Native observation: used swap 2,636.25 MiB (2.574 GiB), system-reported free-memory percentage 89%, no project training/evaluation process. The previous bounded native probe used 1.983 GiB peak and did not grow swap; all selftests passed. Residual swap alone is not a direct measurement of current memory pressure.
+
+For this R0 retry only, use a documented 3 GiB starting-swap limit instead of the conservative 1 GiB suggestion, keep the absolute 4 GiB stop limit, and shorten monitoring to 10 seconds. The evaluation-only 512 MiB cache bound remains active. Do not change guard defaults, exams, scoring or model precision. This is an operational recovery decision, not evidence of full-exam stability. Check resources again before training; this decision does not automatically change training limits. Owner reboot request is no longer necessary for this bounded baseline attempt.
+
+## Conservative wording for generated outcome interpretations
+
+Codex / GPT-6 (root), before reporting edits. `interpret()` currently treats significant improvement in A and non-significance in B as proof of retained trained-paper knowledge, and absence of significant A accuracy gain as proof that no knowledge was learned. Those conclusions exceed the item-bootstrap/McNemar outputs: a difference between significant and non-significant results is not a tested difference in changes, and accuracy is only one outcome. Replace only those interpretation strings with conditional language and state the need for a direct group-change comparison. Label `p_correct` as a softmax share of character-normalized scores, not a calibrated clinical probability. Preserve all metric fields, numeric tests and scoring; run selftest before R1.
+
+## R1 allocator and resource recovery decision
+
+The complete guarded R0 finished all seven exams with swap never above 2.574 GiB, ending near 2.559 GiB. Earlier real LoRA smoke preserved the intended rank-16/all-layer, sequence-1024, batch-4/accumulation-2 configuration and used 18.21 GiB MLX peak. For R1 retain all scientific settings (500 steps, lr 2e-4 and fixed 100 validation windows), set the existing process-local free-cache option to 2 GiB, and use the documented recovery start limit 3 GiB, absolute stop 4 GiB, interval 10 seconds. Do not change guard defaults or wired limit. Bounding freed allocations does not reduce layer count, context, batch or training capacity. This is a monitored formal attempt, not a claim of long-run stability. R3/R4 require another resource check after R1.

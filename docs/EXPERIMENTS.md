@@ -1,6 +1,6 @@
 # ADHD-01 experiment
 
-Updated 2026-09-30. Data splits and all seven exams are frozen locally. All 539 question-generation records passed final validation: 1,478 questions from 461 contributing papers, with 78 documented skips. Group A has 718 questions from 223 papers; group B has 760 questions from 238 papers. LoRA smoke passed; full-parameter R2 remains paused. The first guarded R0 attempt stopped at the swap threshold; no complete baseline or formal post-training result exists yet. Its evaluation-only cache fix passed selftests and a 116-item native probe. A retry awaits the reviewed resource gate.
+Updated 2026-09-30. Data splits and all seven exams are frozen locally. All 539 question-generation records passed final validation: 1,478 questions from 461 contributing papers, with 78 documented skips. Group A has 718 questions from 223 papers; group B has 760 questions from 238 papers. LoRA smoke passed; full-parameter R2 remains paused. After an interrupted attempt, the cache-bounded R0 retry completed all seven exams without swap growth. R1 is now running; no formal post-training result exists yet. Recovery uses a documented 3 GiB starting-swap threshold, retains the 4 GiB stop threshold and checks every 10 seconds; default guard settings remain unchanged.
 
 ## Questions
 
@@ -34,7 +34,7 @@ Publication year reduces overlap risk but does not establish that the base model
 
 Strict ADHD stem screening found zero suitable MedMCQA validation items, so no `medmcqa_adhd` exam is fabricated.
 
-Multiple-choice scoring sums option log-probability after the prompt, divides by character count (`acc_norm`), and selects the best option. Record the correct option's normalized probability (`p_correct`) too. Perplexity uses non-overlapping 1024-token windows. Evaluation temporarily bounds the free MLX allocator cache to 512 MiB and restores the caller policy on success or failure; this does not alter scoring or the training cache settings. Pair item IDs, use bootstrap 95% confidence intervals, and require McNemar's exact test agreement for choice significance. Exams under 10 items receive no significance verdict; small exams still warrant caution.
+Multiple-choice scoring sums option log-probability after the prompt, divides by character count (`acc_norm`), and selects the best option. Record `p_correct` too: it is the correct option's softmax share of character-normalized log scores, not a calibrated probability of clinical correctness. Perplexity uses non-overlapping 1024-token windows. Evaluation temporarily bounds the free MLX allocator cache to 512 MiB and restores the caller policy on success or failure; this does not alter scoring or the training cache settings. Pair item IDs, use bootstrap 95% confidence intervals, and require McNemar's exact test agreement for choice significance. Exams under 10 items receive no significance verdict; small exams still warrant caution.
 
 ## Run sequence
 

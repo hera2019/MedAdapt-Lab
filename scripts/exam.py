@@ -305,7 +305,7 @@ def compare(run_a, run_b, results_root=RESULTS, index_path=INDEX, out=None):
                 q = items.get(i, {}).get("prompt", "").replace("\n", " ")
                 return f"- `{i}` {q[:140]}"
             details.append(
-                f"### {name}\n\nMean correct-option probability: {pa.mean():.3f} → {pb.mean():.3f}(difference 95% CI "
+                f"### {name}\n\nMean correct-option normalized-score share (not calibrated): {pa.mean():.3f} → {pb.mean():.3f}(difference 95% CI "
                 f"[{plo:+.3f}, {phi:+.3f}]).McNemar p = {p_value:.3g}.\n\n"
                 f"Changed from incorrect to correct: {len(gained)} items: \n" + "\n".join(show(i) for i in gained[:10]) +
                 f"\n\nChanged from correct to incorrect: {len(lost)} items: \n" + "\n".join(show(i) for i in lost[:10]) + "\n")
@@ -339,13 +339,13 @@ def interpret(report, sa, sb):
         if up and not ctrl:
             notes.append("Group A significantly improved, but no group B control is available; knowledge retention cannot be distinguished from format familiarity.")
         elif up and not ctrl_up:
-            notes.append("Group A significantly improved while group B did not: the model retained specific new knowledge from the trained papers.")
+            notes.append("Group A significantly improved while group B did not show a significant improvement. This pattern is consistent with a trained-paper benefit, but a direct comparison of group changes is needed to establish that difference.")
         elif up and ctrl_up:
             notes.append("Both groups improved: at least part may reflect format or domain familiarity rather than specific knowledge retention.")
         elif all(e["verdict"] == "Too few items; no verdict" for e in know):
             notes.append("Group A contains too few items to judge.")
         else:
-            notes.append("Group A did not significantly improve: training text did not translate into answerable knowledge (often observed in DAPT on unrewritten text).")
+            notes.append("Group A accuracy did not significantly improve in this run. This does not prove absence of learning; inspect the correct-choice score share, uncertainty and other outcomes.")
     for e in pick("domain"):
         notes.append(f"Unseen new-paper perplexity: {e['verdict']}({100 * (e['ppl_b'] / e['ppl_a'] - 1):+.2f}%).")
     for e in pick("forgetting"):
