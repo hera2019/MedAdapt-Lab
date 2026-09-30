@@ -84,16 +84,25 @@ def encode(tokenizer, text):
     return list(tokenizer.encode(text, add_special_tokens=False))
 
 
-def pack(docs, tokenizer, seq_len):
+def pack(docs, tokenizer, seq_len, prefix_eos=False):
     """Concatenate docs separated by EOS and cut into windows of seq_len + 1 tokens.
 
     Packing spends no compute on padding; a window may span two documents, the usual
     trade-off for continued pretraining. The trailing remainder is dropped.
+
+    prefix_eos=True starts every window with EOS followed by seq_len stream tokens. Qwen3
+    turns position 0 into an attention sink (hidden norm ~6800 vs ~20 elsewhere). Without
+    EOS at position 0 during training, LoRA (R1) learned to stop forming that sink when
+    EOS *is* at position 0, and every later token in such a window got worse
+    (docs/ISSUES.md, 2026-10-01). Keeping EOS at position 0 in training preserves it.
     """
     stream = []
     for text in docs:
         stream.extend(encode(tokenizer, text))
         stream.append(tokenizer.eos_token_id)
+    if prefix_eos:
+        return [[tokenizer.eos_token_id] + stream[i:i + seq_len]
+                for i in range(0, len(stream) - seq_len + 1, seq_len)], len(stream)
     width = seq_len + 1
     return [stream[i:i + width] for i in range(0, len(stream) - width + 1, width)], len(stream)
 
@@ -120,16 +129,21 @@ def token_logprobs(model, sequences):
     return [row[:len(s) - 1] for row, s in zip(picked.tolist(), sequences)]
 
 
-def text_nll(model, tokenizer, text, window):
+def text_nll(model, tokenizer, text, window, prefix_eos=True):
     """Summed negative log-likelihood and scored-token count for a long text.
 
-    Non-overlapping windows; each window starts from EOS so every text token is
-    scored exactly once.
+    Non-overlapping windows. prefix_eos=True (the frozen ADHD-01 protocol) starts each
+    window from EOS so every text token is scored exactly once. prefix_eos=False starts
+    each window at its first text token, which is then context only (not scored).
     """
     ids = encode(tokenizer, text)
+    prefix = [tokenizer.eos_token_id] if prefix_eos else []
     nll, count = 0.0, 0
     for start in range(0, len(ids), window):
-        lp = token_logprobs(model, [[tokenizer.eos_token_id] + ids[start:start + window]])[0]
+        chunk = prefix + ids[start:start + window]
+        if len(chunk) < 2:
+            continue
+        lp = token_logprobs(model, [chunk])[0]
         nll -= sum(lp)
         count += len(lp)
     return nll, count

@@ -145,3 +145,55 @@ Concrete proposed recovery, **awaiting owner approval**: set `AGX_RELAX_CDM_CTXS
 Codex / GPT-6 (root), exploratory local analysis, 2026-10-01 JST. Independent paper-cluster bootstrap (223 trained / 238 held-out papers, paired item accuracy changes within paper; 5000 replicates, seed 20261001) estimates trained-minus-heldout change **-0.458 percentage points**, 95% percentile CI **[-3.877, +3.024]**. This does not establish trained-paper-specific benefit. No multiplicity adjustment; one training seed and no independent clinical/psychometric validation. Full local analysis code/records remain excluded from publication.
 
 R1 sampled 4.096 million tokens from a 17.431-million-token corpus (~0.235 packed epochs), so not every fact/window was necessarily encountered. R3's planned 4.096 million tokens from 2.480 million selected tokens (~1.652 epochs) changes corpus selection and per-document exposure together; its failed run does not support an effectiveness conclusion. R4 would double full-corpus exposure and stretch the cosine learning-rate trajectory; it does not isolate duration from that trajectory. No completed formal contrast tests rank, peak learning rate or adaptation method. Provisional full findings are local; R3/R4 completion awaits the stability recovery decision.
+
+## Owner-authorized overnight execution after the reviewer update
+
+2026-10-01 JST, Codex / GPT-6 (root). Owner asked to begin after closing other programs and requested sleep prevention during work. Reviewed Opus's code/taskbook changes; fresh native selftest passed, including resumed-vs-uninterrupted tiny-model equality. Frozen exam/index hashes, Base fingerprint and selected full/validation hashes remain identical. Current swap 1443.81 MiB (1.410 GiB), project 4.53 GiB, free disk 105.06 GiB.
+
+Execute the revised reviewed order: supplementary no-EOS R0/R1 PPL, then independent R1b with EOS-prefixed packing; verify its position-0 EOS norm remains in the thousands before new-protocol R3/R4. R3/R4 compare with R1b, separately within each PPL protocol. R1b is an explicitly benchmark-informed correction; preserve original R1/old scoring and all unfavorable results. Old failed R3 cannot resume because it predates checkpoint saving and used the other packing protocol.
+
+Continue the documented operational 3 GiB start / 4 GiB stop / 10-second guard, batch1/accum8/cache2GiB/eval100, original LR/rank/layers/context, default 50-step checkpoint. Begin without the driver hint. If Metal fails again, the owner's go-ahead after the explained proposal authorizes a targeted `AGX_RELAX_CDM_CTXSTORE_TIMEOUT=1` fallback set only on the owned child invocation; record every application and resume. No permanent system/shell setting. Resume saved run config/data/optimizer/order; before a first checkpoint restart once; stop on non-watchdog/resource breaches or repeated failures with no progress. Runtime hints do not prove local stability.
+
+Use built-in `caffeinate -is` around this task's sequential runner, based on its local manual: idle/system sleep assertions last only while the utility runs; no display-on assertion. This satisfies the owner's work-time sleep-prevention request without controlling app settings/screens. Release automatically on success or failure. Private orchestration/events stay in the project. No UI, reboot, installation or additional download.
+
+New validation packing differs from original R1, so validation losses are comparable within the new runs, not a direct R1-vs-R1b fixed-window comparison. Checkpoint resume resets MLX RNG, which is sufficient for these dropout-0 runs; do not claim general stochastic-dropout reproducibility. Run-record training seconds after a resume describe that segment, not total elapsed wall time; preserve guard/attempt records for total timing. Code must remain unchanged during the batch. Finalize signed records, beginner/English reports and audited public source after the reviewed runs finish.
+
+## Complete supplementary no-EOS R0/R1 PPL
+Executor: Codex / GPT-6 (root), 2026-10-01 JST. These complete 270-paper/50-general-item scores use the reviewer-approved supplementary protocol and do not replace the frozen EOS scores. Each window starts with its first text token as context, so its first token is not scored. Same protocol is used before and after.
+Baseline `20260930T173943Z-baseline`; post-exam `20260930T174323Z-after-20260930T135838Z-lora-r1-lora-micro1`.
+| Measure | R0 without EOS | R1 without EOS | Relative change | Paired 95% CI |
+|---|---:|---:|---:|---|
+| Held-out ADHD PPL | 8.031704 | 7.361024 | -8.350% | [-8.684%, -8.032%] |
+| General PPL | 13.431928 | 14.664963 | +9.180% | [+8.763%, +9.604%] |
+
+Under no-EOS scoring, R1 improves held-out ADHD predictability and worsens general predictability modestly. Under the frozen EOS protocol, both regress dramatically. The strong protocol dependence plus sink probes supports a prefix-related side effect; it does not justify erasing adverse EOS results, cross-protocol comparisons, or clinical claims. Both protocols reuse the same original text files; this is an explicitly outcome-informed supplementary analysis, not independent confirmatory evidence.
+
+## R1b complete; sink gate passed
+Executor: Codex / GPT-6 (root), 2026-10-01 JST. Reviewer protocol correction, not an independent confirmatory replication. First launch failed before the first checkpoint; fresh Base retry used the child-only driver hint. The retry completed 500 updates, both complete scoring protocols, paired reports and the sink probe.
+Run `20260930T174842Z-lora-r1b-eosprefix-retry`. Validation (new packing) 2.129548 -> 2.051779; reported MLX peak 5.710 GiB. Do not directly compare this validation range with original R1. All native checkpoint files were verified at step 50; no artificial interruption was introduced. Sink probe EOS norm 7803 (base 6868), word norm 6319 (base 6480), median other-token norm 27. Gate passed; revised R3 is now running.
+| Measure | R1b result | Change vs same-protocol R0 | Paired 95% CI |
+|---|---:|---:|---|
+| Trained-paper QA | 36.908% | +2.228 pp | [-0.279, +4.735] pp |
+| Held-out-paper QA | 36.053% | +3.289 pp | [+0.789, +5.789] pp |
+| ADHD PPL, EOS | 7.404098 | -9.211% | [-9.534%, -8.896%] |
+| General PPL, EOS | 14.701741 | +7.771% | [+7.297%, +8.239%] |
+| ADHD PPL, no EOS | 7.372283 | -8.210% | [-8.532%, -7.903%] |
+| General PPL, no EOS | 14.484872 | +7.839% | [+7.446%, +8.240%] |
+
+Exploratory paper-cluster trained-minus-heldout change -1.061 pp, CI [-4.560, +2.483]; does not establish a trained-paper-specific benefit. Original item-based QA tests find no significant trained-group change but a held-out-group improvement; their difference still requires this direct test. All three secondary medical-QA accuracy changes are non-significant. No multiplicity adjustment or extra training seed.
+
+Both scoring protocols now show held-out ADHD prediction gains and modest general-text regressions. The EOS-norm/PPL results support the practical mitigation on this run; they do not isolate prefix effects from changed window layout/shuffle, or certify clinical capability. Original R1 adverse EOS scores remain. R3/R4 test other planned factors against R1b.
+
+## 2026-10-01 JST — revised R3 complete, R4 launched
+Executor/analyst: Codex / GPT-6 (root). Revised R3 `20260930T184551Z-lora-r3-newonly-eosprefix` completed without failure or AGX override, 500 updates and both full post-exam protocols. Trained/held-out QA 43.315%/37.237%; direct paper-cluster trained-minus-heldout difference vs R0 +4.161 pp [+0.512,+7.976], vs R1b +5.222 pp [+1.721,+8.792]. Corpus selection/per-paper exposure confounded; exploratory one-seed evidence. EOS ADHD/general PPL 7.491381/15.267462; no-EOS 7.456771/15.023890. Both are slightly worse than R1b within their respective protocol. Verified adapter SHA, attributed execution record, preserved all raw exams/comparisons and checkpoint trace. R4 `20260930T194234Z-lora-r4-x2-eosprefix` launched with 1000 updates from Base, initially without driver hint. No R4 outcome claim.
+
+## 2026-10-01 JST — overnight sequence complete
+Executor/analyst: Codex / GPT-6 (root); framework correction credited to Claude / Opus 5.5. Runner exited 0 after supplementary R0/R1 scoring, R1b (500), sink gate, R3 (500), R4 (1000), full EOS/no-EOS post-exams and both R1b control comparisons. Started 02:39:42 JST, finished 06:22:56 (223.24 minutes). Task-bound sleep prevention released automatically. R1b first launch failed before its first checkpoint and restarted from Base with a child-only AGX hint; R3/R4 had no interruption/hint. No native checkpoint resume occurred; native checkpoint files and tiny resume-equivalence selftest are the available evidence.
+
+R4 `20260930T194234Z-lora-r4-x2-eosprefix`: validation 2.129548 -> 2.038087, MLX peak 5.714 GiB, swap max 1.379 GiB. EOS ADHD/general PPL 7.280485/14.883700; no-EOS 7.247922/14.662270. Trained/heldout QA 37.883%/36.711%; direct paper-cluster gap vs R0 -0.744 pp [-4.216,+2.792], vs R1b +0.317 pp [-1.906,+2.636]. Versus R1b, domain PPL improves about 1.67–1.69%, general worsens 1.22–1.24%; neither paper-QA group clearly changes. General medical MCQ improves +2.0 pp vs R1b under the paired rule, but remains -0.2 pp vs R0.
+
+Reconciled English/Chinese findings and answered all four questions within measured limits. Preserved original adverse EOS results, all failures, exact hashes and outcome-informed correction caveats. Aligned future config to the already completed batch1/accum8/eval100/cache2 settings only after the runner ended. No new model, data download or additional experiment. Required final selftest/frozen audit and audited English publication follow.
+
+Final checks — Codex / GPT-6 (root), 2026-10-01 JST: native `scripts/selftest.py` exited 0 and all tests passed, including tiny checkpoint-resume equivalence. Frozen roles/exclusions/split, seven exams/index and all QGEN record hashes remain unchanged. All native adapter SHA-256 and training/validation hashes verified; Base fingerprint matches original. Project used 4.64 GiB / 25, disk free 104.95 GiB / reserve 15. No native resume was needed. Detailed signed verification remains in the private overnight cache.
+
+Public preflight — Codex / GPT-6 (root), 2026-10-01 JST: the 49-file English allowlist passed content/credential/personal-path checks (about 302 KB before this entry). Native selftests and the 550-file frozen integrity check passed. Only source, configuration and aggregate English reports are eligible; private Chinese guide, questions/evidence, weights/adapters, data and detailed run history remain excluded. Preparation audits reachable public history; final remote commit/tree verification is retained locally after push.

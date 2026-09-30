@@ -81,11 +81,11 @@ def wilson(k, n, z=1.96):
 
 # ---------------------------------------------------------------- scoring
 
-def score_ppl(model, tokenizer, items, window):
+def score_ppl(model, tokenizer, items, window, prefix_eos=True):
     from lm import text_nll
     out = []
     for item in items:
-        nll, tokens = text_nll(model, tokenizer, item["text"], window)
+        nll, tokens = text_nll(model, tokenizer, item["text"], window, prefix_eos)
         out.append({"id": item["id"], "nll": nll, "tokens": tokens, "chars": len(item["text"])})
     return out
 
@@ -154,7 +154,7 @@ def bounded_exam_cache(limit=EXAM_CACHE_LIMIT):
 
 @bounded_exam_cache()
 def run_exams(model, tokenizer, *, label, model_info, adapter_info=None, names=None, limit=None,
-              window=1024, index_path=INDEX, results_root=RESULTS, train_run=None):
+              window=1024, index_path=INDEX, results_root=RESULTS, train_run=None, ppl_prefix="eos"):
     """Score every selected exam, write per-item results, append the ledger; return run dir."""
     index = load_index(index_path)
     model.eval()
@@ -167,7 +167,7 @@ def run_exams(model, tokenizer, *, label, model_info, adapter_info=None, names=N
     summary = {"run_id": run_id, "label": label, "date": stamp.isoformat().replace("+00:00", "Z"),
                "exam_version": index["exam_version"], "scoring_version": SCORING_VERSION,
                "model": model_info, "adapter": adapter_info, "train_run": train_run,
-               "limit": limit, "window": window, "exams": {},
+               "limit": limit, "window": window, "ppl_prefix": ppl_prefix, "exams": {},
                "evaluation_memory_policy": {"free_cache_limit_bytes": EXAM_CACHE_LIMIT,
                                             "restore_caller_policy": True}}
     for name in selected:
@@ -175,7 +175,8 @@ def run_exams(model, tokenizer, *, label, model_info, adapter_info=None, names=N
         items = read_jsonl(Path(index_path).parent / spec["file"])[:limit] if limit else \
             read_jsonl(Path(index_path).parent / spec["file"])
         started = time.time()
-        rows = score_ppl(model, tokenizer, items, window) if spec["type"] == "ppl" else score_mcq(model, tokenizer, items)
+        rows = (score_ppl(model, tokenizer, items, window, ppl_prefix == "eos") if spec["type"] == "ppl"
+                else score_mcq(model, tokenizer, items))
         (run_dir / "items" / f"{name}.jsonl").write_text(
             "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
         result = summarize(spec["type"], rows, items)
@@ -192,7 +193,7 @@ def run_exams(model, tokenizer, *, label, model_info, adapter_info=None, names=N
     return run_dir
 
 
-def find_baseline(model_info, exam_version, results_root=RESULTS, window=1024):
+def find_baseline(model_info, exam_version, results_root=RESULTS, window=1024, ppl_prefix="eos", need=None):
     """Latest complete, adapter-free exam run of exactly these weights and exam version."""
     ledger = Path(results_root) / "exam_log.jsonl"
     if not ledger.exists():
@@ -201,6 +202,7 @@ def find_baseline(model_info, exam_version, results_root=RESULTS, window=1024):
     for line in ledger.read_text(encoding="utf-8").splitlines():
         row = json.loads(line)
         if (row["adapter"] is None and row["limit"] is None and row["window"] == window
+                and row.get("ppl_prefix", "eos") == ppl_prefix and set(need or ()) <= set(row["exams"])
                 and row["exam_version"] == exam_version and row["scoring_version"] == SCORING_VERSION
                 and row["model"].get("fingerprint") == model_info.get("fingerprint")):
             found = Path(results_root) / "exams" / row["run_id"]
@@ -219,7 +221,8 @@ def write_log_md(results_root=RESULTS):
     for row in rows:
         adapter = row["adapter"]["run_id"] if row["adapter"] else "None (baseline)"
         cells = [headline(row["exams"][n]["type"], row["exams"][n]) if n in row["exams"] else "" for n in names]
-        partial = f" (limit {row['limit']})" if row["limit"] else ""
+        partial = (f" (limit {row['limit']})" if row["limit"] else "") + \
+            (" (PPL without EOS prefix)" if row.get("ppl_prefix", "eos") == "none" else "")
         lines.append(f"| {row['date']} | `{row['run_id']}`{partial} | {Path(row['model']['path'] or 'selftest').name} "
                      f"| {adapter} | " + " | ".join(cells) + " |")
     (Path(results_root) / "EXAM_LOG.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -250,7 +253,8 @@ def compare(run_a, run_b, results_root=RESULTS, index_path=INDEX, out=None):
     dir_a, dir_b = (Path(r) if Path(r).is_dir() else root / r for r in (run_a, run_b))
     sa = json.loads((dir_a / "summary.json").read_text(encoding="utf-8"))
     sb = json.loads((dir_b / "summary.json").read_text(encoding="utf-8"))
-    if sa["scoring_version"] != sb["scoring_version"] or sa["window"] != sb["window"]:
+    if (sa["scoring_version"] != sb["scoring_version"] or sa["window"] != sb["window"]
+            or sa.get("ppl_prefix", "eos") != sb.get("ppl_prefix", "eos")):
         raise RuntimeError("runs used different scoring settings; not comparable")
     index = json.loads(Path(index_path).read_text(encoding="utf-8"))
     report = {"a": sa["run_id"], "b": sb["run_id"], "exams": {}}
@@ -371,6 +375,8 @@ def main():
     r.add_argument("--exams", nargs="+")
     r.add_argument("--limit", type=int, help="first N items per exam; quick check only")
     r.add_argument("--window", type=int, default=1024)
+    r.add_argument("--ppl-prefix", choices=("eos", "none"), default="eos",
+                   help="eos = frozen ADHD-01 protocol; none = supplementary protocol added 2026-10-01")
     c = sub.add_parser("compare")
     c.add_argument("run_a")
     c.add_argument("run_b")
@@ -392,10 +398,11 @@ def main():
             adapter_info = {"run_id": cfg["run_id"], "path": str(Path(args.adapter).resolve()), "sha256": cfg["adapter_sha256"]}
         label = args.label or (f"after:{adapter_info['run_id']}" if adapter_info else "baseline")
         run_dir = run_exams(model, tokenizer, label=label, model_info=model_info, adapter_info=adapter_info,
-                            names=args.exams, limit=args.limit, window=args.window)
+                            names=args.exams, limit=args.limit, window=args.window, ppl_prefix=args.ppl_prefix)
         print(f"saved {run_dir}")
         if adapter_info:
-            base = find_baseline(model_info, json.loads(INDEX.read_text())["exam_version"], window=args.window)
+            base = find_baseline(model_info, json.loads(INDEX.read_text())["exam_version"], window=args.window,
+                                 ppl_prefix=args.ppl_prefix, need=args.exams)
             if base:
                 print(f"compare: {compare(base.name, run_dir.name)}")
 

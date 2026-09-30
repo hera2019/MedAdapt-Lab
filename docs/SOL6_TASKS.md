@@ -107,6 +107,24 @@ Prerequisites: complete, frozen A/B exams and a ready monitored environment. Do 
 .venv/bin/python scripts/train.py --name r4-lora-x2 --iters 1000
 ```
 
+**Revised order (Claude, 2026-10-01; see the last two entries of docs/ISSUES.md).** R1 broke the position-0 attention sink. New runs keep EOS at position 0 through `window_prefix_eos: true` in the config, which makes them a different protocol from R1.
+1. Record the supplementary no-prefix baseline for R0 and the no-prefix exam for R1. Both go in the ledger labelled "PPL without EOS prefix":
+
+   ```sh
+   .venv/bin/python scripts/exam.py run --model models/qwen3-0.6b-base --label baseline --ppl-prefix none --exams adhd_new_ppl general_ppl
+   .venv/bin/python scripts/exam.py run --model models/qwen3-0.6b-base --adapter adapters/20260930T135838Z-lora-r1-lora-micro1 --ppl-prefix none --exams adhd_new_ppl general_ppl
+   ```
+
+2. **R1b**: R1's settings, with the prefix now on by default:
+
+   ```sh
+   train.py --name r1b-eosprefix --batch-size 1 --grad-accum 8 --eval-batches 100 --cache-limit-gib 2
+   ```
+
+   Then run `scripts/sink_probe.py adapters/<R1b run_id>`. The sink holds if `pos0_norm_eos` stays in the thousands. If it collapses like R1 (about 84), stop and record it.
+3. If the sink holds, run R3 and R4 with the same flags (R3 adds `--train data/train/adhd-01/train_new.jsonl`; R4 adds `--iters 1000`), and compare them with R1b, not R1.
+4. If a run crashes (for example Metal Impacting Interactivity), relaunch the same guard command with `train.py --resume <run_id>` in place of the original train arguments. Record every resume.
+
 Every training ends with exams and a comparison report. For cross-run comparisons use `exam.py compare`. R3's selected-corpus hash is in the split record. Only after review, consider 1.7B revision `ea980cb0a6c2ae4b936e82123acc929f1cec04c1` (about 3.3 GB) and repeat R0/R1.
 
 Acceptance: baseline and every post-training exam appear in EXAM_LOG.md, with raw results and paired comparisons.

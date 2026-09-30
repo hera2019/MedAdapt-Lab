@@ -9,7 +9,7 @@ The first experiment, **ADHD-01**, uses openly licensed ADHD papers and Qwen3 Ba
 - Data splits and all seven exams are frozen in the owner's local experiment. All 539 paper records were validated; A/B exams contain 718 and 760 questions.
 - Qwen3-0.6B-Base LoRA completed a 30-step smoke run. This is an engineering check, not a formal effectiveness result.
 - Full-parameter training is paused: several attempts encountered Metal errors; one completed run increased fixed-range validation loss.
-- Full R0 and 500-step R1 LoRA are complete. Both paper-question groups improved; frozen EOS-prefixed PPL regressed sharply. Local scoring checks identify prefix sensitivity in two samples, limiting broad forgetting claims. R3 then failed with a Metal watchdog error after its step-40 log; R4 awaits resolution. A child-process timeout workaround requires owner approval; see the aggregate report.
+- R0, original R1, revised R1b (500 updates), R3 (new-only, 500) and R4 (full corpus, 1000) completed their full exams and paired comparisons. R2 remains paused. Revised R3 shows a larger trained-paper QA gain under an exploratory paper-cluster analysis; R4 improves domain PPL further than R1b with a small additional general-text regression. Both scoring protocols and original R1's adverse EOS results are preserved. The correction was outcome-informed; one seed and no multiplicity adjustment limit conclusions. See [the findings](results/FINDINGS.md).
 
 ## Experiment design
 
@@ -59,9 +59,12 @@ Use the project-local environment. Existing installations need no dependency rei
 .venv/bin/python scripts/build_exams.py
 # Only after both complete new-fact exams meet their minimum gates:
 .venv/bin/python scripts/resource_guard.py \
+  --start-swap-gib 3 --interval 10 \
   --log experiments/adhd-01/runs/first-resources.jsonl \
   -- .venv/bin/python scripts/train.py --name first
 ```
+
+The checked configuration uses physical batch 1 / accumulation 8, 1024-token context, 100 validation windows and a 2 GiB MLX cache limit. The example applies the recorded 3/4 GiB swap policy; launcher defaults remain more conservative. Give each launch a new log path.
 
 Follow [the taskbook](docs/SOL6_TASKS.md) for commands and acceptance criteria. Do not regenerate existing frozen files in an ongoing experiment.
 

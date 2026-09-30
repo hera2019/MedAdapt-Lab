@@ -105,6 +105,12 @@ def main():
     check(count == len(ids) and math.isclose(nll, direct, rel_tol=1e-5), "text_nll scores every token once")
     lps = choice_logprobs(model, tok, "Q: pick\nA:", [" yes", " no"])
     check(len(lps) == 2 and all(v < 0 for v in lps), "choice log-probs are negative sums")
+    eos_windows, _ = pack(["abc" * 50, "xyz" * 50], tok, 32, prefix_eos=True)
+    check(all(len(w) == 33 and w[0] == tok.eos_token_id for w in eos_windows) and len(eos_windows) == 9,
+          "EOS-prefixed packing starts every window with EOS")
+    nll_none, count_none = text_nll(model, tok, text, window=40, prefix_eos=False)
+    check(count_none == len(ids) - math.ceil(len(ids) / 40) and nll_none > 0,
+          "PPL without prefix scores all but each window's first token")
 
     original_cache = mx.set_cache_limit(64 * 1024 ** 2)
     try:
@@ -177,6 +183,18 @@ def main():
               "comparison reports significant improvement on both exams")
         log_md = (results / "EXAM_LOG.md").read_text()
         check("None (baseline)" in log_md and "selftest-run" in log_md, "EXAM_LOG.md lists baseline and trained run")
+
+        # A run interrupted after its checkpoint and resumed must end where an uninterrupted run ends.
+        cfg_ckpt = dict(cfg, iters=20, checkpoint_every=10, window_prefix_eos=True, log_every=5, eval_every=10)
+        straight = tiny_model()
+        train(straight, tok, [FACT * 20] * 10, [FACT * 20] * 2, cfg_ckpt, tmp / "run_ckpt", log=lambda *_: None)
+        resumed = tiny_model()  # same base weights, as when reloading from disk
+        r_res = train(resumed, tok, [FACT * 20] * 10, [FACT * 20] * 2, cfg_ckpt, tmp / "run_ckpt",
+                      log=lambda *_: None, resume=True)
+        resumed_log = (tmp / "run_ckpt" / "train_log.jsonl").read_text()
+        check(mx.allclose(straight(probe), resumed(probe), atol=1e-4).item() and r_res["val_loss_start"] is not None
+              and '"resumed_at_step": 10' in resumed_log,
+              "resume from the step-10 checkpoint reproduces the uninterrupted run")
 
         full = tiny_model()
         cfg_full = dict(cfg, mode="full", lr=1e-3, iters=20, cache_limit_gib=0.25, wired_limit_gib=1.0)

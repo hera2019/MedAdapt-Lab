@@ -1,6 +1,6 @@
 {
   "experiment_id": "ADHD-01",
-  "status": "planned",
+  "status": "formal_lora_sequence_complete_r2_paused",
   "task": "DAPT on licensed ADHD full text; measure with frozen exams before and after every run",
   "model_path": "models/qwen3-0.6b-base",
   "seed": 42,
@@ -21,8 +21,8 @@
     "dropout": 0.0,
     "num_layers": 0,
     "seq_len": 1024,
-    "batch_size": 4,
-    "grad_accum": 2,
+    "batch_size": 1,
+    "grad_accum": 8,
     "iters": 500,
     "lr": 0.0002,
     "min_lr_ratio": 0.1,
@@ -31,11 +31,13 @@
     "max_grad_norm": 1.0,
     "log_every": 10,
     "eval_every": 50,
-    "eval_batches": 25,
+    "eval_batches": 100,
     "seed": 42,
     "full_dtype": "float32",
-    "cache_limit_gib": -1.0,
-    "wired_limit_gib": -1.0
+    "cache_limit_gib": 2.0,
+    "wired_limit_gib": -1.0,
+    "window_prefix_eos": true,
+    "checkpoint_every": 50
   },
-  "notes": "num_layers 0 = all layers. For --mode full use --lr 2e-5. Settings are a starting point, not a tuned result."
+  "notes": "num_layers 0 = all layers. For --mode full use --lr 2e-5. Settings are a starting point, not a tuned result. window_prefix_eos (added 2026-10-01, Claude) keeps EOS at position 0 of every training window; R1 ran without it. checkpoint_every enables --resume after a crash. Operational defaults aligned on 2026-10-01 by Codex / GPT-6 with completed R1b/R3/R4: batch1/accum8, eval100, cache2GiB. Effective batch, context, rank and peak LR unchanged. Completed run records retain exact launch settings; no active run changed."
 }

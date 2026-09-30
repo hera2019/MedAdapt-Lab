@@ -1,6 +1,6 @@
 # ADHD-01 experiment
 
-Updated 2026-09-30. Data splits and all seven exams are frozen locally. All 539 question-generation records passed final validation: 1,478 questions from 461 contributing papers, with 78 documented skips. Group A has 718 questions from 223 papers; group B has 760 questions from 238 papers. LoRA smoke passed; full-parameter R2 remains paused. The full R0 baseline and microbatch-1/accumulation-8 R1 completed all exams. Both question groups improved, while frozen EOS-prefixed PPL regressed. Two separately labeled local diagnostic texts show strong prefix sensitivity; this limits broad forgetting claims without replacing the formal measurements. R3 failed after its step-40 log with no final adapter/post-exam; R4 is unlaunched. A child-process driver-timeout proposal awaits owner approval. The planned scientific settings and recorded resource policy remain unchanged (start below 3 GiB swap, stop at 4 GiB, every 10 seconds). Guard defaults remain unchanged.
+Updated 2026-10-01 by Codex / GPT-6 (root). R0, original R1, revised R1b (500 updates), R3 (new-only, 500) and R4 (full corpus, 1000) completed their full exams and paired comparisons. R2 remains paused. Revised R3 shows a larger trained-paper QA gain under an exploratory paper-cluster analysis; R4 improves domain PPL further than R1b with a small additional general-text regression. Both scoring protocols and original R1's adverse EOS results are preserved. The correction was outcome-informed; one seed and no multiplicity adjustment limit conclusions. See [the findings](../results/FINDINGS.md). Frozen A/B exams contain 718/760 questions from 223/238 contributing papers; 539 records yielded 1478 questions and 78 documented skips. Native runs preserve 50-step checkpoint traces. Resource policy was launch below 3 GiB swap, stop at 4 GiB and check every 10 seconds; guard defaults are unchanged.
 
 ## Questions
 
@@ -43,8 +43,9 @@ Multiple-choice scoring sums option log-probability after the prompt, divides by
 | R0 | 0.6B Base baseline | Only after complete A/B exams are frozen |
 | R1 | 0.6B LoRA r=16, lr 2e-4, 500 steps | Main adaptation run |
 | R2 | Historical 0.6B full float32, lr 2e-5 | Paused: Metal and validation acceptance unresolved |
-| R3 | LoRA on `new_train` only | Effect of corpus selection |
-| R4 | R1 at 2x / 4x steps | Additional exposure |
+| R1b | R1 with EOS-prefixed packing | Reviewed protocol correction |
+| R3 | EOS-prefixed LoRA on `new_train` only | Effect of corpus selection |
+| R4 | R1b at 2x steps (1000), independently from Base | Additional exposure |
 | R5 | 1.7B repeat of R1 | Deferred scale comparison |
 | ADHD-02 | Possible paraphrased/synthetic continued pretraining | Later experiment, not currently selected |
 
