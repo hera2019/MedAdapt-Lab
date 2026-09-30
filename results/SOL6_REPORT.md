@@ -49,11 +49,11 @@ Completed full run: default 25-window validation 2.521747→2.648594; original f
 
 Commands/environment, exit codes and log hashes remain local as explicit post-run reconstructions. No independent inference server was started. No causal attribution to the owner's suspected killed process. Memory-control selftest passed, including real weight alteration and serialization; tiny-model success does not prove real-model stability.
 
-## Phase 6 and readiness
+## Earlier phase 6 and readiness snapshot
 
-Current 65/539 papers: 53 contributing / 212 valid questions, 12 documented skips. Latest three each passed 4/4 evidence checks, no REJECT. Group identities remain hidden. New-fact exams are not frozen; require complete queue records and >=150 contributing papers / >=400 valid questions per group, targeting approximately 600.
+Before the owner rebooted: 65/539 papers: 53 contributing / 212 valid questions, 12 documented skips. Latest three each passed 4/4 evidence checks, no REJECT. Group identities remain hidden. New-fact exams are not frozen; require complete queue records and >=150 contributing papers / >=400 valid questions per group, targeting approximately 600.
 
-Resume queue: use `qgen_helper.py queue --limit 3`; 474 records remain. No formal baseline, phase 7 training or phase 8 findings yet.
+At that earlier snapshot, 474 records remained and no formal baseline or training had run. This snapshot is superseded by the completion and formal-run entries below.
 
 Accepted Opus 5.5's LoRA mainline/R2 pause and stronger question quality checks. Heavy swap supports a suspected mechanism, not a confirmed diagnosis. Latest preflight: project 4.41 GiB, free disk 94.46 GiB, +3 GiB permitted; swap 11,288.75 MiB, above the proposed 1 GiB launch threshold. Asked user to prepare/reboot manually; no apps/interfaces/system settings operated. Continue CPU question work while prerequisites remain unmet.
 
@@ -72,3 +72,30 @@ Guard preflight at 06:28 UTC refused to launch any child: swap 10.60 GiB exceede
 Public snapshot check passed for 47 English files (including Apache-2.0 LICENSE, NOTICE and the resource guard), with no sensitive-pattern matches. Original exam computation AST matched after normalization of textual constants. Public push verification will be recorded locally after publication.
 
 Publication verified: GitHub public visibility, main branch and Apache-2.0 detection confirmed. All 47 remote blobs matched the audited English snapshot at `c2a69496f767c5fc8536bfc9e31e318fe4d073d8`. A CLI tree-query flag error was corrected; the subsequent full-tree verification passed. Local cache stores the verification. Subsequent question work reached 65 papers / 212 valid questions / 12 skips, without launching training or changing frozen roles/exams.
+
+### Post-reboot resumption and authorized parallel QGEN
+
+2026-09-30, Codex / GPT-6: user rebooted the machine and reported other apps closed. Native check observed zero swap, 108.83 GiB disk free and 4.41 GiB project usage. Resource readiness recovered; complete frozen new-fact exams remain the prerequisite. Added 12 checked questions (68 records / 224 items). Owner authorized at most three collaborating agents. Split 471 remaining identities into three disjoint 140-paper ranges and a 51-paper root range, preserving hash order inside each range and hiding A/B identities. All contributions require per-record actual authorship, zero evidence rejects and uniform quality. No formal training has launched.
+
+### Phase 6 completed and exams frozen
+
+2026-09-30, Codex / GPT-6 (root). Owner-authorized collaborators Codex / GPT-6 (qgen_1, qgen_2, qgen_3) completed their disjoint 140-paper assignments; root completed 51 and reviewed the earlier 68 records. All 539 records have actual writer attribution. Final total: **461 contributing papers / 1,478 valid questions / 78 documented skips**. Zero evidence rejects, duplicated stems or mechanical quality flags; every option character max/min ratio <=1.5, every stem <=60 words and every option <=12 words. Correct answer was uniquely longest in 235/1,478 questions (15.9%); this does not establish absence of scoring bias.
+
+Root rechecked 18 randomly selected questions, six per collaborator, against source context. A broad all-outcome distractor was corrected by its writer before the full final revalidation. Authors rechecked compound claims, null findings and observational/animal/case-report boundaries. These checks are not independent clinical or psychometric validation. Protocols, narrative/commentary sources and internally conflicting reports carry specific skip reasons. Question skips do not modify the previously frozen licensed DAPT corpus; source reliability is a limitation of that corpus.
+
+- `newfacts_trained`: 223 contributing papers, 718 questions; SHA-256 `8367fb64478bb94ab4c60b474f54a5d6fdb58025d4143bfe43ce35966a8e8014`.
+- `newfacts_heldout`: 238 contributing papers, 760 questions; SHA-256 `32f4b67912155f550b8dbe186e7f8506ce4cbd0771189e0891f66fa5b159a06d`.
+
+The two new-fact exams were added once, after completing and validating every record. The five background exam hashes, benchmark exclusions, article roles, manual exclusions, train/validation files and split remained unchanged. Training and validation have no held-out article IDs; new-only training identities equal the frozen new_train group. Private signed handoffs, per-file hashes and aggregate audit remain in the local ignored cache. Seven exams are now frozen. No explicit ADHD MedMCQA validation items exist; the 16 psychiatry items are not relabeled as an ADHD exam.
+
+Next: guarded R0 baseline, then R1/R3/R4 LoRA with full post-training exams and paired comparisons. R2 remains paused.
+
+### R0 interruption and bounded-evaluator recovery
+
+2026-09-30, executor/fix author: Codex / GPT-6 (root). Guarded R0 preflight passed at 12:31:38 UTC with zero swap. Psychiatry MCQ finished at 31.25% (16 items), then the minute monitor observed 12,222,201,856 swap bytes (**11.38 GiB**) while scoring general MCQ. The guard stopped only its own child (child -2, guard 3). Preserved the partial raw results and a signed reconstruction; no complete baseline summary/ledger entry and no training exist. General MCQ inputs have at most 640 characters for stem plus longest option, so an enormous input prompt does not explain this event.
+
+Installed MLX documents that its free allocator cache defaults to the memory limit. Excessive cache retention across variable shapes is a supported hypothesis, not a confirmed isolated cause. After recording the issue, added a **512 MiB free-cache bound only during evaluation**, clearing it at entry/exit and restoring the caller policy in finally. Model precision, tokenization, batching, normalization, PPL windows, statistical comparisons, all seven frozen exams and training parameters are unchanged. Summary metadata records this allocator policy.
+
+All selftests passed, including exactly equal tiny-model MCQ/PPL scores and caller-policy restoration after success and an injected exception. A bounded native Qwen3-0.6B-Base diagnostic scored the original 16 psychiatry questions plus 100 general questions: the 16 earlier raw rows were **exactly identical**; peak MLX memory was **1.983 GiB**, with no increase in swap across its ten 10-item samples. Diagnostic duration 4.4s excludes model loading. This finite probe does not prove full seven-exam stability. The diagnostic is not a formal baseline and is not entered as one in the ledger.
+
+The post-probe system still held approximately 5.34 GiB swap, with 88% free-memory percentage reported by the system. The existing formal gate is absolute used swap below 1 GiB; it has not been weakened. Requested another owner-controlled reboot after validating the fix. R0 retry and R1/R3/R4 remain ready but unexecuted; R2 remains paused.

@@ -53,3 +53,13 @@ Readiness check observed 11,288.75 MiB used swap, above the reviewed 1 GiB start
 ## Guarded LoRA launch preparation
 
 Codex / GPT-6, 2026-09-30. Add a stdlib-only outer launcher to enforce existing formal-exam and resource gates before starting a child process, log swap/disk/project usage each minute, and interrupt only the child session if limits are breached. Keep train.py and numerical training unchanged. Validate missing-exam rejection, resource parsing/thresholds and isolation from another owned test process; run project selftest. Current preflight should refuse launch, not claim resumed training.
+
+## R0 baseline allocator growth after reboot
+
+Recorded before edits by Codex / GPT-6 (root), 2026-09-30. Guarded R0 started at 12:31:38 UTC with zero swap, 109.25 GiB free disk and all seven frozen exams. Psychiatry MCQ completed (16 items, 31.25%, 1.3 seconds), then the first minute monitor observed 12,222,201,856 swap bytes (11.38 GiB) while scoring general MCQ. The guard interrupted only its child; exit 3, child -2. No complete baseline ledger or training exists. Preserved resource log and partial raw psychiatry results. General MCQ stems+longest option are at most 640 characters (mean 132), so giant input context is not supported by that evidence.
+
+Installed MLX 0.32.3 documents that its free allocator cache defaults to the memory limit and is reclaimed on the next allocation only after a configured bound is exceeded. Hypothesis: varied short MCQ tensor shapes retained excessive cached allocations. Exact cause is not yet established. Minimal proposed change: bound free cache to 512 MiB only inside `run_exams`, clear it at entry/exit, restore the caller's previous limit in `finally`, and record that bound in the run summary. Keep model precision, prompt/choice tokenization, batching, per-token likelihood, character normalization, PPL windows and statistical comparisons identical. Tiny-model tests must show identical scores and restoration after success/error; a bounded native probe must remain measured rather than claimed from theory. No cache-budget change to training and no bypass of the formal swap gate.
+
+### Cache-fix verification and remaining gate
+
+Codex / GPT-6 (root): all selftests passed, including exactly equal tiny-model MCQ/PPL outputs and allocator-policy restoration after success/exception. Native bounded probe: 16 prior psychiatry rows exactly identical; another 100 general items scored; peak 1.983 GiB, no swap increase across ten samples. No full-model unbounded reproduction was attempted. Cache retention remains the working hypothesis. Approximately 5.34 GiB old swap still exceeds the unchanged formal launch gate; requested owner-controlled reboot. Frozen exam/source/training hashes preserved.

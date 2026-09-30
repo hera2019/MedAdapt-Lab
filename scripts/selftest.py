@@ -19,7 +19,7 @@ from mlx.utils import tree_flatten
 from mlx_lm.models import qwen3
 
 from common import sha256
-from exam import compare, find_baseline, run_exams
+from exam import EXAM_CACHE_LIMIT, bounded_exam_cache, compare, find_baseline, run_exams
 from lm import apply_lora, choice_logprobs, count_params, load_adapter, pack, save_trainable, text_nll, token_logprobs
 from prepare_dapt import chunk_text
 from pmc_adhd import article_text, body_text, new_date_ok
@@ -105,6 +105,28 @@ def main():
     check(count == len(ids) and math.isclose(nll, direct, rel_tol=1e-5), "text_nll scores every token once")
     lps = choice_logprobs(model, tok, "Q: pick\nA:", [" yes", " no"])
     check(len(lps) == 2 and all(v < 0 for v in lps), "choice log-probs are negative sums")
+
+    original_cache = mx.set_cache_limit(64 * 1024 ** 2)
+    try:
+        with bounded_exam_cache():
+            observed = mx.set_cache_limit(EXAM_CACHE_LIMIT)
+            check(observed == EXAM_CACHE_LIMIT, "exam allocator has its bounded free cache")
+            bounded_lps = choice_logprobs(model, tok, "Q: pick\nA:", [" yes", " no"])
+            bounded_nll, bounded_tokens = text_nll(model, tok, text, window=40)
+        restored = mx.set_cache_limit(64 * 1024 ** 2)
+        check(restored == 64 * 1024 ** 2 and bounded_lps == lps and
+              bounded_tokens == count and bounded_nll == nll,
+              "bounded exam cache restores caller policy and preserves exact MCQ/PPL scores")
+        try:
+            with bounded_exam_cache():
+                raise RuntimeError("intentional cache restoration probe")
+        except RuntimeError:
+            pass
+        restored = mx.set_cache_limit(64 * 1024 ** 2)
+        check(restored == 64 * 1024 ** 2, "exam cache policy restores after exceptions")
+    finally:
+        mx.clear_cache()
+        mx.set_cache_limit(original_cache)
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)

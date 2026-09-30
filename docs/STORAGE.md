@@ -1,6 +1,6 @@
 # Storage budget and deletion policy
 
-Updated 2026-09-30 by Codex / GPT-6. Latest preparation check: project **4.41 GiB**, system free space **94.46 GiB**. These are point-in-time measurements. Hard project budget: **25 GiB**; system reserve: **15 GiB**.
+Updated 2026-09-30 by Codex / GPT-6. Latest preparation check: project **4.41 GiB**, system free space **109.25 GiB**. These are point-in-time measurements. Hard project budget: **25 GiB**; system reserve: **15 GiB**.
 
 | Allocation | Initial limit |
 |---|---:|
@@ -22,7 +22,7 @@ The check requires project usage below 25 GiB and post-allocation free disk abov
 
 The original full-parameter attempt briefly reached about 13 GiB system free space and was stopped. The project itself remained around 2.2 GiB. After user cleanup, later attempts observed approximately 82–92 GiB free space; one completed full checkpoint raised project usage to 4.41 GiB. Current R2 pause concerns Metal stability and validation acceptance, rather than disk capacity.
 
-Opus observed heavy swap and suggested conservative formal-training thresholds: less than 1 GiB swap used before launch, record swap/disk each minute, stop when swap exceeds 4 GiB. These are project review thresholds, not official MLX hardware limits. The latest readiness check observed about 11 GiB used swap; the user was asked to prepare the system manually. Do not reboot or close apps automatically.
+Opus observed heavy swap and suggested conservative formal-training thresholds: less than 1 GiB swap used before launch, record swap/disk each minute, stop when swap exceeds 4 GiB. These are project review thresholds, not official MLX hardware limits. The earlier readiness check observed about 11 GiB used swap and blocked launch. After the owner rebooted, the 2026-09-30 readiness check observed zero swap and formal baseline launch passed. That baseline was then interrupted when the first minute monitor observed 11.38 GiB swap. The evaluation-only cache fix passed a 116-item native probe at 1.98 GiB peak; approximately 5.34 GiB old swap remained afterward, so formal retry is still gated. Do not reboot or close apps automatically.
 
 ## Deletion and recovery
 

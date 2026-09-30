@@ -9,6 +9,7 @@ Exams are listed in eval/exams/index.json (built once by build_exams.py, then fr
 Every item result is kept, so a comparison can say *which* questions changed.
 """
 import argparse
+from contextlib import contextmanager
 import datetime as dt
 import hashlib
 import json
@@ -23,6 +24,7 @@ SCORING_VERSION = 1
 INDEX = ROOT / "eval/exams/index.json"
 RESULTS = ROOT / "results"
 MIN_ITEMS = 10  # below this no exam is called significant, whatever the interval says
+EXAM_CACHE_LIMIT = 512 * 1024 ** 2  # Free allocator cache only, not live tensor memory.
 
 # What each exam role is expected to show after ADHD DAPT; used to phrase the report.
 ROLE_TEXT = {
@@ -132,6 +134,25 @@ def headline(kind, summary):
 
 # ---------------------------------------------------------------- running
 
+@contextmanager
+def bounded_exam_cache(limit=EXAM_CACHE_LIMIT):
+    """Bound inference allocator retention and restore the training caller's policy.
+
+    Author: Codex / GPT-6, 2026-09-30. Does not alter numerical scoring.
+    """
+    import mlx.core as mx
+    previous = mx.set_cache_limit(limit)
+    try:
+        mx.clear_cache()
+        yield
+    finally:
+        try:
+            mx.clear_cache()
+        finally:
+            mx.set_cache_limit(previous)
+
+
+@bounded_exam_cache()
 def run_exams(model, tokenizer, *, label, model_info, adapter_info=None, names=None, limit=None,
               window=1024, index_path=INDEX, results_root=RESULTS, train_run=None):
     """Score every selected exam, write per-item results, append the ledger; return run dir."""
@@ -146,7 +167,9 @@ def run_exams(model, tokenizer, *, label, model_info, adapter_info=None, names=N
     summary = {"run_id": run_id, "label": label, "date": stamp.isoformat().replace("+00:00", "Z"),
                "exam_version": index["exam_version"], "scoring_version": SCORING_VERSION,
                "model": model_info, "adapter": adapter_info, "train_run": train_run,
-               "limit": limit, "window": window, "exams": {}}
+               "limit": limit, "window": window, "exams": {},
+               "evaluation_memory_policy": {"free_cache_limit_bytes": EXAM_CACHE_LIMIT,
+                                            "restore_caller_policy": True}}
     for name in selected:
         spec = index["exams"][name]
         items = read_jsonl(Path(index_path).parent / spec["file"])[:limit] if limit else \
