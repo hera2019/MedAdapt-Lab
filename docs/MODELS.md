@@ -4,7 +4,7 @@ Updated 2026-09-30. Original plan: Claude. Measurements and English restatement:
 
 | Stage | Model | Reason and status |
 |---|---|---|
-| Initial | Qwen3-0.6B-Base, bf16, unquantized | LoRA smoke passed; formal LoRA mainline waits for complete exams and resource readiness. Full-parameter control is paused |
+| Initial | Qwen3-0.6B-Base, bf16, unquantized | 500-step formal R1 and all post-exams completed with microbatch 1 / accumulation 8, 5.714 GiB peak. Both question groups improved; EOS-prefixed PPL regressed. Full-parameter control is paused |
 | Later | Qwen3-1.7B-Base, bf16 | Revisit scale after interpretable initial results; not downloaded |
 | Deferred | 8B / 14B quantized MLX Base | Verify conversion provenance, memory and useful training capacity before choosing |
 

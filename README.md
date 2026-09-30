@@ -9,7 +9,7 @@ The first experiment, **ADHD-01**, uses openly licensed ADHD papers and Qwen3 Ba
 - Data splits and all seven exams are frozen in the owner's local experiment. All 539 paper records were validated; A/B exams contain 718 and 760 questions.
 - Qwen3-0.6B-Base LoRA completed a 30-step smoke run. This is an engineering check, not a formal effectiveness result.
 - Full-parameter training is paused: several attempts encountered Metal errors; one completed run increased fixed-range validation loss.
-- The cache-bounded retry completed all seven baseline exams without swap growth. R1 formal LoRA training is running with a 2 GiB free allocator cache, 10-second monitoring and a documented recovery start/stop swap policy of 3/4 GiB. No formal post-training effectiveness result exists yet.
+- Full R0 and 500-step R1 LoRA are complete. Both paper-question groups improved; frozen EOS-prefixed PPL regressed sharply. Local scoring checks identify prefix sensitivity in two samples, limiting broad forgetting claims. R3 then failed with a Metal watchdog error after its step-40 log; R4 awaits resolution. A child-process timeout workaround requires owner approval; see the aggregate report.
 
 ## Experiment design
 
