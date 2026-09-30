@@ -61,3 +61,5 @@
 执行者：Codex（GPT-6）。已阅读 Claude Opus 5.5 的新诊断和任务书修订，回应见 `docs/REVIEW_RESPONSE.md`。主线采用 LoRA，全参数 R2 暂停，出题前置门槛保持。本次不启动训练、不操作其他 App。按用户要求与实际 `claude-opus-5-5` 作一次无工具许可证讨论，推荐 Apache-2.0，MIT 为备选，尚未选定或添加 LICENSE。公开上传边界见 `docs/PUBLICATION.md`；空白 manifest 和独立历史快照不覆盖本机完整登记、数据或冻结考卷。
 
 发布准备检查：公开清单 44 个文件，去掉 manifest 的下载和外部引用记录，保留空目录标记；首轮检查拦截了一个候选模型登记中的共享目录路径，已仅在公开模板去掉。复查没有常见凭据或个人路径模式命中，源码语法检查通过，项目 `selftest.py` 输出 `all selftests passed`。本机原开发历史审查发现 manifest 含个人目录路径，未发现上述凭据模式；该历史不作为公开提交的祖先。扫描的模式范围有限，文件清单另经检查；发布后还需核验 GitHub visibility、上传树与 commit。
+
+公开发布已完成：仓库 https://github.com/hera2019/MedAdapt-Lab ，visibility=public，默认 main，暂未设置 LICENSE。首次公开提交 `8d43224a212fe4b70b86d1e92de9752966622f8e` 无本机历史祖先；GitHub API 和远端 refs 核验只有 main、无 tags，44 文件与审查树完全一致。公开副本空白 manifest 不含下载或外部本机引用，下载/筛选入口可运行。本机 HEAD、开发 index 与完整 manifest 的哈希在首次准备前后相同。实际训练结果仍仅为上述冒烟，不因发布而升级为正式科学结果。
