@@ -51,9 +51,9 @@ Commands/environment, exit codes and log hashes remain local as explicit post-ru
 
 ## Phase 6 and readiness
 
-Current 62/539 papers: 52 contributing / 208 valid questions, ten documented skips. Latest three each passed 4/4 evidence checks, no REJECT. Group identities remain hidden. New-fact exams are not frozen; require complete queue records and >=150 contributing papers / >=400 valid questions per group, targeting approximately 600.
+Current 65/539 papers: 53 contributing / 212 valid questions, 12 documented skips. Latest three each passed 4/4 evidence checks, no REJECT. Group identities remain hidden. New-fact exams are not frozen; require complete queue records and >=150 contributing papers / >=400 valid questions per group, targeting approximately 600.
 
-Resume: PMC13056690, PMC12900143, PMC13343229. No formal baseline, phase 7 training or phase 8 findings yet.
+Resume queue: use `qgen_helper.py queue --limit 3`; 474 records remain. No formal baseline, phase 7 training or phase 8 findings yet.
 
 Accepted Opus 5.5's LoRA mainline/R2 pause and stronger question quality checks. Heavy swap supports a suspected mechanism, not a confirmed diagnosis. Latest preflight: project 4.41 GiB, free disk 94.46 GiB, +3 GiB permitted; swap 11,288.75 MiB, above the proposed 1 GiB launch threshold. Asked user to prepare/reboot manually; no apps/interfaces/system settings operated. Continue CPU question work while prerequisites remain unmet.
 
@@ -70,3 +70,5 @@ A tool-free discussion with actual claude-opus-5-5 recommended Apache-2.0; the o
 Guard preflight at 06:28 UTC refused to launch any child: swap 10.60 GiB exceeded the reviewed 1 GiB launch limit and the complete new-fact exams were absent. Disk had 94.34 GiB free and the project used 4.41 GiB. This was a readiness check, not training. User preparation remains pending; CPU question preparation can proceed.
 
 Public snapshot check passed for 47 English files (including Apache-2.0 LICENSE, NOTICE and the resource guard), with no sensitive-pattern matches. Original exam computation AST matched after normalization of textual constants. Public push verification will be recorded locally after publication.
+
+Publication verified: GitHub public visibility, main branch and Apache-2.0 detection confirmed. All 47 remote blobs matched the audited English snapshot at `c2a69496f767c5fc8536bfc9e31e318fe4d073d8`. A CLI tree-query flag error was corrected; the subsequent full-tree verification passed. Local cache stores the verification. Subsequent question work reached 65 papers / 212 valid questions / 12 skips, without launching training or changing frozen roles/exams.
