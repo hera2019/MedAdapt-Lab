@@ -1,65 +1,72 @@
-# Sol 6 执行报告
+# ADHD-01 execution report
 
-## 阶段 0：环境与自测（2026-09-30）
+Executor: Codex / GPT-6. English restatement on 2026-09-30; original report archived locally. Historical measurements are not current resource guarantees or scientific results.
 
-执行者：Codex（GPT-6）。首次在受限沙箱运行 `.venv/bin/python -B scripts/selftest.py`，导入 MLX 时提示无 Metal 设备；在允许访问本机 Metal 的环境中重跑，命令完成耗时 3.7 秒，末行实际输出 `all selftests passed`。未下载模型或数据。下一阶段为固定 commit 的评测集和 0.6B Base 模型下载。
+## Phase 0–2: environment, acquisition, benchmark sealing
 
-## 阶段 1：固定版本的评测集与模型（2026-09-30）
+Initial sandboxed MLX import lacked Metal; permitted native selftest passed in 3.7 seconds with no downloads. Inspected four revisions, all matched the taskbook. Registered MedMCQA validation/test (4,183/6,150 rows), PubMedQA labeled (1,000), WikiText test (4,358) and Qwen3-0.6B-Base. Twelve initial files had hashes; model weights were 1,192,135,096 bytes. Small sources took about 2.9/2.7/2.6 seconds, model about 1 minute 58 seconds; a sandbox DNS failure preceded an authorized retry.
 
-执行者：Codex（GPT-6）。先用 `--inspect` 核对四项来源，远端 commit 均与任务书一致；每次下载前运行空间预检。下载并登记 MedMCQA validation/test（4183/6150 行）、PubMedQA labeled（1000 行）、WikiText-103 test（4358 行）及 Qwen3-0.6B-Base。`manifest.json` 的 `downloads` 共 12 个文件，均有 SHA-256；模型主权重 `models/qwen3-0.6b-base/model.safetensors` 为 1,192,135,096 字节。三个小来源分别耗时约 2.9、2.7、2.6 秒；模型下载约 1 分 58 秒。首次在受限网络下检查来源时 DNS 不可用，改在获准联网的环境中重试后成功。
+Sealed three files, 11,302 prompts and 1,000 PMIDs in 0.46 seconds. Frozen exclusion hash: `a5ef3cfb28f58eaf18fbccaa32e460a48bea016ba3d1e4d1cac6a261abf08b84`.
 
-## 阶段 2：封存评测集（2026-09-30）
+## Phase 3: corpus
 
-执行者：Codex（GPT-6）。运行 `seal_benchmarks.py`，实际输出：封存 3 个文件、11,302 道题、1,000 个 PubMedQA PMID；耗时 0.46 秒。`eval/benchmark_exclusions.json` 的 `sealed` 为 `true`，文件 SHA-256 为 `a5ef3cfb28f58eaf18fbccaa32e460a48bea016ba3d1e4d1cac6a261abf08b84`。这是冻结文件，后续不重新生成。
+New search: 701 candidates, 636 XML, 65 initial rejections; rescreened out 76 short/absent bodies and 21 early publication dates. Retained originals/registrations. Eligible 539 split once into 269 trained / 270 held-out; roles hash `0ef45a82487dd23ef1b3c0518b8386755be7c0bda9d32ab0244afbe868575033`. Retrieval timestamp span 923 seconds including pauses, not pure network time; five metadata records inspected.
 
-## 阶段 3：PMC 全文（完成，2026-09-30）
+Pool search: 6,210 hits, first 5,000 indexed, first 3,000 processed. Usable 1,817; rejected 1,183 (867 license, 316 body). Registered-original times spanned 18:11:38–19:09:09 UTC on 2026-09-29, about 57 minutes 31 seconds. All 2,453 XML rescreened; five old records inspected. Three additional suspicious old-paper matches manually excluded from training.
 
-执行者：Codex（GPT-6）。`new` 检索实际返回 701 个候选，全部已处理：636 篇 XML 下载并登记，65 篇在抓取时拒收。复核 636 篇后，76 篇正文不足、21 篇 JATS 最早发表日期早于 2026 年，均保留原件和 manifest 登记但标记排除。余下 539 篇一次性冻结为 269 篇 `new_train`、270 篇 `new_heldout`；`eval/pmc_roles.json` SHA-256 为 `0ef45a82487dd23ef1b3c0518b8386755be7c0bda9d32ab0244afbe868575033`。从首篇至末篇已登记 `new` 原件的时间跨度为 923 秒，包括中途暂停修复；不等同于纯网络耗时。抽查 5 篇元数据的标题、日期和正文字符数，均有合理内容。问题与修法见 `docs/ISSUES.md`；修复后 `scripts/selftest.py` 输出 `all selftests passed`。
+Final 2,467 downloads: zero missing fields, duplicate paths, missing files, local-size mismatches or missing hashes. XML originals were rehashed during preparation. Historical phase-end project 2.06 GiB / free disk 41.21 GiB.
 
-`pool` 检索实际返回 6210 个候选，保存前 5000 个索引；任务书指定的前 3000 个候选全部处理：1817 篇取得合格 CC 许可及至少 1000 字符 JATS 正文，1183 篇拒收（867 篇许可缺失/冲突/不符，316 篇正文不足）。已登记 pool XML 首末下载时间为 2026-09-29 18:11:38–19:09:09 UTC，跨度约 57 分 31 秒，不能代表每篇网络纯耗时。`screen-existing` 共复核 2453 份已下载 XML；最终 `new` 可用 539 篇、`pool` 可用 1817 篇。抽查 5 篇旧论文元数据的标题、发表日期和正文长度，均为有正文的旧论文。近题名审核另外排除 3 篇旧论文进入训练，详见 `eval/manual_exclusions.json`，原件和 manifest 保留。最终项目用量约 2.06 GiB，`df` 可用约 41.21 GiB，均在预算内。
+## Phase 4: split and five background exams
 
-最终清单 `manifest.json` 有 2467 个下载文件条目；检查所需字段、重复路径、文件缺失、本地大小不符与缺少 SHA-256，五项计数均为 0。训练切分时对每份 PMC 原件重算 SHA-256；其余固定来源在构建考卷或封存时核对哈希。
+Training: 1,992 papers / 23,532 chunks, including 269 new papers / 3,481 chunks. Validation: 91 papers / 998 chunks. Excluded 370 (270 held-out, 97 screen failures, three manual). Identity intersections zero. No independent split timing was captured.
 
-## 阶段 4：训练切分与基础考卷（完成，2026-09-30）
+| Artifact | SHA-256 |
+|---|---|
+| train | `019d09b66e4650db8d3bf75f0ede9e2f1029060c374c76a5295c019132135f1c` |
+| validation | `6f534ccc74565678f0a6d4e094f5ff2c836f2eb6f2621ee3a444eb7547fdbe32` |
+| manual exclusions | `cd16e98860d6e8242107414bf7b843496e7054b0f9b5254bae9b8964120a576f` |
+| split | `d2da459ef79be537d919f386a8a74945faf3526b83bcbb0c771851e5e485290f` |
 
-执行者：Codex（GPT-6）。`prepare_dapt.py` 产生训练 1992 篇/23532 块（其中新论文 269 篇/3481 块）、验证 91 篇/998 块，排除 370 篇（新论文留出 270、正文或日期不合格 97、人工近重复 3）。训练、验证、留出及人工排除三者的 PMCID 交集均为 0；269 篇 `new_train` 全部进入训练。训练文件 SHA-256 `019d09b66e4650db8d3bf75f0ede9e2f1029060c374c76a5295c019132135f1c`，验证文件 SHA-256 `6f534ccc74565678f0a6d4e094f5ff2c836f2eb6f2621ee3a444eb7547fdbe32`；复算与 `split.json` 一致。人工排除清单 SHA-256 `cd16e98860d6e8242107414bf7b843496e7054b0f9b5254bae9b8964120a576f`，切分文件 `d2da459ef79be537d919f386a8a74945faf3526b83bcbb0c771851e5e485290f`。切分命令没有独立计时记录，不给出猜测耗时。
+Exam construction: 1.67 seconds. Frozen medmcqa_psych 16, medmcqa_general 500, pubmedqa 1,000, general_ppl 50, adhd_new_ppl 270. Index hash `d17ff5b00eaf7e7713b445f3c1fcbaf9675322849293f25a51dcf18fc98d052d`. Strict MedMCQA ADHD stems: zero, so no fake specialty exam.
 
-`build_exams.py` 命令实测 1.67 秒，冻结 5 套有题的基础考卷：`medmcqa_psych` 16、`medmcqa_general` 500、`pubmedqa` 1000、`general_ppl` 50、`adhd_new_ppl` 270；考卷索引 SHA-256 `d17ff5b00eaf7e7713b445f3c1fcbaf9675322849293f25a51dcf18fc98d052d`。MedMCQA validation 原关键词命中的两题人工逐题核验，均是非 ADHD 题干、ADHD/其药物只作干扰选项；严格题干筛选 0 道，故不建 `medmcqa_adhd`，阶段 4 验收相应修订为 5 套。该问题记录于 `docs/ISSUES.md`，不为凑数造伪专项考卷。
+## Phase 5: smoke and recovery
 
-## 阶段 5：训练冒烟（部分完成，2026-09-30）
+LoRA `20260929T191536Z-lora-smoke`: 30 steps / 204.0 seconds, 17,431,219 train tokens and 736,335 validation tokens, about 0.01 planned epoch. Validation 2.1143→2.0938; final interval 1,753 tokens/s, peak 18.21 GiB. Adapter about 39 MiB. Engineering smoke only, not a formal benchmark result.
 
-执行者：Codex（GPT-6）。LoRA 30 步短跑 `20260929T191536Z-lora-smoke` 完成，训练循环 204.0 秒；17,431,219 个训练 token，736,335 个验证 token，计划约 0.01 epoch；第 0/30 步验证损失 2.1143→2.0938，末段吞吐 1753 token/s，MLX 峰值 18.21 GiB。适配器约 39 MiB，保存在 `adapters/`，标记为冒烟，不作正式性能结论。
+Original full `20260929T191958Z-full-smoke-full`: step-zero 2.1138 then interrupted before step-10 logging at 13 GiB free disk. Exit 130 / KeyboardInterrupt, no final weights. Space recovered while project remained about 2.2 GiB.
 
-全参数 30 步短跑 `20260929T191958Z-full-smoke-full` 在第 0 步验证损失 2.1138 后、尚未记录第 10 步时中断：`df` 系统可用空间从启动前约 27 GiB 波动到 22–24 GiB，随后最低读到约 13 GiB，低于 15 GiB 底线。立即发送中断信号；退出码 130、`KeyboardInterrupt`，中断后空间回升至 22–28 GiB。项目目录仍约 2.2 GiB；波动原因未证实。此原配置短跑**未通过**，没有该次全参数训练结果；正式 R2 暂停，详见 `docs/ISSUES.md`。
+After cleanup: prelaunch free disk 92.93 GiB. All 596,049,920 parameters remained trainable float32, sequence 1024, effective 8,192 tokens/step; microbatch became 1 x accumulation 8. All diagnostic runs skipped exams. Last logged step does not identify the exact failing step.
 
-### 硬盘清理与重启后的诊断（2026-09-30）
+| Run | Setting / outcome |
+|---|---|
+| `20260930T041136Z-full-smoke-full-resume` | lr 2e-5; after step 10 Metal error, peak 15.59 GiB, no weights |
+| `20260930T041904Z-full-smoke-full-restart` | Requested same-config restart; after step 20 same error, peak 15.59 GiB, no weights |
+| `20260930T042723Z-full-smoke-full-memory` | Cache 1 / wired 20 GiB; completed 30 steps in 200.0 seconds, about 1,262 tokens/s, peak 15.67583 GiB; validation regressed |
+| `20260930T043526Z-full-smoke-full-low-lr` | lr 5e-6 / warmup 10 / 100 validation windows; error after step zero |
+| `20260930T043844Z-full-smoke-full-buffer` | Smaller buffers; after step 10 error, about 1,214 tokens/s, peak 14.95535 GiB |
 
-执行者：Codex（GPT-6）。用户清理后启动前可用约 92.93 GiB。全参数保留 596,049,920 个可训练参数、float32、段长 1024、每步 8192 token，微批从 4×累积 2 改为 1×累积 8。所有运行均使用 `--skip-exam`，没有查看 benchmark 或开始正式实验；验证范围变化单独注明。下面的步数是最后日志步数，不能据此断定出错恰在下一步。
+Completed full run: default 25-window validation 2.521747→2.648594; original fixed 100 windows / 102,400 tokens 2.1137549281→2.2403196049 (+0.1265646768). Weights hash `d6caad6df0108052ca7cc56476e0bde9b34e2676dc194b0300da54d6f0233d17`. Buffer probe step-10 validation 2.1110010976, but no completion/checkpoint. All failed retries: Metal Impacting Interactivity, exit 1. One completion does not pass loss-decrease acceptance or prove long-run stability.
 
-| run_id | 参数差异 | 结果 |
-|---|---|---|
-| `20260930T041136Z-full-smoke-full-resume` | lr 2e-5，无自定义内存控制 | 第 10 步后 Metal 中断；峰值 15.59 GiB，无最终权重 |
-| `20260930T041904Z-full-smoke-full-restart` | 用户要求同配置重启 | 第 20 步后同类中断；峰值 15.59 GiB，无最终权重 |
-| `20260930T042723Z-full-smoke-full-memory` | lr 2e-5，缓存 1 GiB、驻留 20 GiB | 完成 30 步、200.0 秒、末段约 1262 token/s、峰值 15.67583 GiB；损失验收未通过 |
-| `20260930T043526Z-full-smoke-full-low-lr` | lr 5e-6，warmup 10，每 10 步验证 100 窗口，内存控制同上 | 第 0 步后同类中断，无最终权重 |
-| `20260930T043844Z-full-smoke-full-buffer` | 低学习率配置加 `MLX_MAX_OPS_PER_BUFFER=1`、`MLX_MAX_MB_PER_BUFFER=10` | 第 10 步后同类中断；约 1214 token/s、峰值 14.95535 GiB，无最终权重 |
+Commands/environment, exit codes and log hashes remain local as explicit post-run reconstructions. No independent inference server was started. No causal attribution to the owner's suspected killed process. Memory-control selftest passed, including real weight alteration and serialization; tiny-model success does not prove real-model stability.
 
-一次完成的运行默认只看前 25 个验证窗口，损失 2.521747→2.648594，不能直接与原微批的 100 窗口验证值比较。随后在原固定前 100 窗口（102400 token）复核：2.1137549281→2.2403196049，上升 0.1265646768；细节和权重哈希见 `FULL_SMOKE_DIAGNOSTIC.json`。保存的全参数权重 SHA-256 `d6caad6df0108052ca7cc56476e0bde9b34e2676dc194b0300da54d6f0233d17`，仅属冒烟产物。
+## Phase 6 and readiness
 
-小命令缓冲对照中途第 10 步固定验证损失 2.1110010976，相比起点略降，但运行未完成且没有最终权重，不能算通过。失败均为 `[METAL] Command buffer execution failed: Impacting Interactivity (0000000e:kIOGPUCommandBufferCallbackErrorImpactingInteractivity)`。不能证明由用户误杀进程导致，也不能证明内存控制修复了问题。本任务启动的是训练进程，没有独立推理 server；最新进程检查未发现本项目训练仍在运行。五次运行的启动参数、环境变量、退出码与日志哈希已补入各运行目录 `execution_record.json`。
+Current 62/539 papers: 52 contributing / 208 valid questions, ten documented skips. Latest three each passed 4/4 evidence checks, no REJECT. Group identities remain hidden. New-fact exams are not frozen; require complete queue records and >=150 contributing papers / >=400 valid questions per group, targeting approximately 600.
 
-进程内内存控制的代码修改前已登记 `docs/ISSUES.md`；修改后 `scripts/selftest.py` 全部通过，包含全参数权重实际改变及保存加载一致性。这个小模型自检不能证明真实全参数长跑稳定。最新空间检查项目 4.41 GiB、系统可用 91.70 GiB；磁盘不再是当前阻塞原因。全参数阶段 5 仍未通过，正式 R2 仍未启动，不继续无差别重试。
+Resume: PMC13056690, PMC12900143, PMC13343229. No formal baseline, phase 7 training or phase 8 findings yet.
 
-## 阶段 6：预先出题（进行中，2026-09-30）
+Accepted Opus 5.5's LoRA mainline/R2 pause and stronger question quality checks. Heavy swap supports a suspected mechanism, not a confirmed diagnosis. Latest preflight: project 4.41 GiB, free disk 94.46 GiB, +3 GiB permitted; swap 11,288.75 MiB, above the proposed 1 GiB launch threshold. Asked user to prepare/reboot manually; no apps/interfaces/system settings operated. Continue CPU question work while prerequisites remain unmet.
 
-执行者：Codex（GPT-6）。按冻结且隐藏 A/B 身份的混排队列累计处理 56/539 篇，46 篇共 184 道题逐篇证据检查通过，10 篇因研究方案、无原创结果或内部矛盾署名说明跳过。本次从原 29 篇推进至 56 篇，新增 96 道题；最后三篇检查分别为 0/0（研究方案）、4/4、4/4，没有 REJECT。两组身份和分组题量在出题期间不查看；未冻结 `newfacts_*`，尚未满足全部出题和每组至少 150 篇、400 道有效题的门槛。基础冻结文件保留。
+## Publication, English content and license
 
-恢复点：`qgen_helper.py queue --limit 3` 返回 `PMC13605905`、`PMC13291228`、`PMC13482012`；继续按序阅读原文出题。正式基线、阶段 7 训练考试及阶段 8 科学结论尚未启动。出题可以继续；全参数恢复须解决上述运行错误并满足原验收标准。
+Public repository: https://github.com/hera2019/MedAdapt-Lab. Initial `8d43224a212fe4b70b86d1e92de9752966622f8e` was a parentless audited 44-file snapshot; `43d0492c243336898447ca0d5a75fcd26fa89d18` added publication records. API verified public/main and matching blobs. Original local HEAD/index/complete manifest were preserved.
 
-## 公开发布准备与 Opus 审议（2026-09-30）
+A tool-free discussion with actual claude-opus-5-5 recommended Apache-2.0; the owner subsequently approved it and requested English public content. Added official LICENSE/NOTICE; translated public documents and report labels, keeping original texts in ignored local cache. Non-text exam AST verified unchanged; frozen exams and numerical records preserved. Selftest/language/publication checks for this update remain pending until recorded below.
 
-执行者：Codex（GPT-6）。已阅读 Claude Opus 5.5 的新诊断和任务书修订，回应见 `docs/REVIEW_RESPONSE.md`。主线采用 LoRA，全参数 R2 暂停，出题前置门槛保持。本次不启动训练、不操作其他 App。按用户要求与实际 `claude-opus-5-5` 作一次无工具许可证讨论，推荐 Apache-2.0，MIT 为备选，尚未选定或添加 LICENSE。公开上传边界见 `docs/PUBLICATION.md`；空白 manifest 和独立历史快照不覆盖本机完整登记、数据或冻结考卷。
+### English/license and launch verification
 
-发布准备检查：公开清单 44 个文件，去掉 manifest 的下载和外部引用记录，保留空目录标记；首轮检查拦截了一个候选模型登记中的共享目录路径，已仅在公开模板去掉。复查没有常见凭据或个人路径模式命中，源码语法检查通过，项目 `selftest.py` 输出 `all selftests passed`。本机原开发历史审查发现 manifest 含个人目录路径，未发现上述凭据模式；该历史不作为公开提交的祖先。扫描的模式范围有限，文件清单另经检查；发布后还需核验 GitHub visibility、上传树与 commit。
+2026-09-30, Codex / GPT-6: all selftests passed, including translated report assertions, resource parsing, refusal of incomplete exams and owned-child isolation. The latest three papers each passed four evidence checks, reaching 62 records / 208 valid questions. Frozen-file hashes remain verified unchanged.
 
-公开发布已完成：仓库 https://github.com/hera2019/MedAdapt-Lab ，visibility=public，默认 main，暂未设置 LICENSE。首次公开提交 `8d43224a212fe4b70b86d1e92de9752966622f8e` 无本机历史祖先；GitHub API 和远端 refs 核验只有 main、无 tags，44 文件与审查树完全一致。公开副本空白 manifest 不含下载或外部本机引用，下载/筛选入口可运行。本机 HEAD、开发 index 与完整 manifest 的哈希在首次准备前后相同。实际训练结果仍仅为上述冒烟，不因发布而升级为正式科学结果。
+Guard preflight at 06:28 UTC refused to launch any child: swap 10.60 GiB exceeded the reviewed 1 GiB launch limit and the complete new-fact exams were absent. Disk had 94.34 GiB free and the project used 4.41 GiB. This was a readiness check, not training. User preparation remains pending; CPU question preparation can proceed.
+
+Public snapshot check passed for 47 English files (including Apache-2.0 LICENSE, NOTICE and the resource guard), with no sensitive-pattern matches. Original exam computation AST matched after normalization of textual constants. Public push verification will be recorded locally after publication.

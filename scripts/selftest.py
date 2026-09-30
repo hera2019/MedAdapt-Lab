@@ -8,6 +8,8 @@ run and detect the improvement; chunking and question validation behave.
 """
 import json
 import math
+import subprocess
+import sys
 import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -21,6 +23,7 @@ from exam import compare, find_baseline, run_exams
 from lm import apply_lora, choice_logprobs, count_params, load_adapter, pack, save_trainable, text_nll, token_logprobs
 from prepare_dapt import chunk_text
 from pmc_adhd import article_text, body_text, new_date_ok
+from resource_guard import swap_bytes, resource_issue, exam_issue, stop_child
 from train import adapter_config, train
 
 
@@ -51,6 +54,29 @@ def check(cond, message):
 
 
 def main():
+    check(swap_bytes("vm.swapusage: total = 12288.00M used = 11288.75M free = 999.25M") ==
+          int(11288.75 * 1024 ** 2), "swap parser handles real macOS output")
+    policy = {"minimum_free_bytes": 15 * 1024 ** 3, "project_budget_bytes": 25 * 1024 ** 3}
+    healthy = {"disk_free_bytes": 30 * 1024 ** 3, "project_used_bytes": 5 * 1024 ** 3,
+               "swap_used_bytes": 0}
+    check(resource_issue(healthy, 1, policy) is None and
+          resource_issue(dict(healthy, swap_used_bytes=4 * 1024 ** 3), 4, policy) is not None and
+          resource_issue(dict(healthy, disk_free_bytes=14 * 1024 ** 3), 4, policy) is not None,
+          "resource guard accepts healthy state and rejects actual policy breaches")
+    with tempfile.TemporaryDirectory() as guard_tmp:
+        guard_index = Path(guard_tmp) / "index.json"
+        guard_index.write_text(json.dumps({"exams": {}}))
+        check(exam_issue(guard_index) is not None, "formal launch requires both complete frozen new-fact exams")
+    children = [subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"],
+                                start_new_session=True, stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL) for _ in range(2)]
+    try:
+        stop_child(children[0])
+        check(children[0].poll() is not None and children[1].poll() is None,
+              "guard interruption leaves the other owned test process running")
+    finally:
+        for child in children:
+            stop_child(child)
     abstract_only = ET.fromstring("<article><front><abstract><p>" + "abstract text " * 100 +
                                   "</p></abstract></front></article>")
     full_text = ET.fromstring("<article><body><p>" + "body text " * 120 + "</p></body></article>")
@@ -125,10 +151,10 @@ def main():
                               adapter_info={"run_id": "selftest-run", "path": str(adapter_dir), "sha256": digest})
         report = compare(base_dir, after_dir, results_root=results, index_path=exams / "index.json")
         data = json.loads(report.with_suffix(".json").read_text())
-        check(data["exams"]["fact_ppl"]["verdict"].startswith("显著下降") and data["exams"]["fact_mcq"]["verdict"] == "显著提升",
+        check(data["exams"]["fact_ppl"]["verdict"].startswith("Significant decrease") and data["exams"]["fact_mcq"]["verdict"] == "Significant improvement",
               "comparison reports significant improvement on both exams")
         log_md = (results / "EXAM_LOG.md").read_text()
-        check("无（基线）" in log_md and "selftest-run" in log_md, "EXAM_LOG.md lists baseline and trained run")
+        check("None (baseline)" in log_md and "selftest-run" in log_md, "EXAM_LOG.md lists baseline and trained run")
 
         full = tiny_model()
         cfg_full = dict(cfg, mode="full", lr=1e-3, iters=20, cache_limit_gib=0.25, wired_limit_gib=1.0)

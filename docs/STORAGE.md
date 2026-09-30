@@ -1,17 +1,29 @@
-# 存储预算与删除策略
+# Storage budget and deletion policy
 
-2026-09-30 清理后最新 `storage.py --need-gib 0` 实测约 **91.70 GiB** 可用，项目约 **4.41 GiB**（包含一份 float32 全参数冒烟权重）。目标“约 25GB 项目预算”是项目总用量上限；始终保留 **15 GiB** 系统可用，还要覆盖缓存、虚拟环境、MLX 临时文件和适配器。每次下载以当时的 `df` 和 `storage.py` 检查为准。
+Updated 2026-09-30 by Codex / GPT-6. Latest preparation check: project **4.41 GiB**, system free space **94.46 GiB**. These are point-in-time measurements. Hard project budget: **25 GiB**; system reserve: **15 GiB**.
 
-| 项目 | 初步上限 |
+| Allocation | Initial limit |
 |---|---:|
-| 模型：0.6B（1.1 GiB）+ 1.7B（3.1 GiB）bf16 | 4.5 GiB |
-| ADHD 全文原件（约 150 KB/篇 × 最多 4000 篇）、处理后语料 | 1.5 GiB |
-| benchmark 指定分区 | 0.5 GiB |
-| 环境（.venv 实测 0.65 GiB）、缓存、适配器与考试记录 | 3 GiB |
-| 项目内临时与误差缓冲 | 3.5 GiB |
+| 0.6B and possible 1.7B bf16 checkpoints | 4.5 GiB |
+| Selected ADHD originals and processed text | 1.5 GiB |
+| Selected benchmark partitions | 0.5 GiB |
+| Environment, cache, adapters, exam records | 3 GiB |
+| Temporary files and estimation buffer | 3.5 GiB |
 
-表内初步分配合计约 13 GiB，剩余预算留作训练产物和运行缓冲。每次下载前 `python3 scripts/storage.py --need-gib N`；脚本检查项目用量低于 25 GiB 且下载后系统余量大于 15 GiB。实际训练过程也可能写临时文件，须留额外缓冲。`du` 不能完整代表 APFS 写入与共享块；最终仍以 `df` 为准。
+These allocations total about 13 GiB; remaining project budget covers additional training artifacts and operating margin. The existing environment is approximately 645 MiB. One saved 0.6B full float32 checkpoint is approximately 2.22 GiB. No additional model is selected for download merely because more disk space became available.
 
-**训练实测边界（2026-09-30）：** 0.6B LoRA 冒烟通过；默认全参数短跑启动前 `df` 约 27 GiB 可用，训练期间最低读到约 13 GiB，随即中断，之后读数回升至 22–28 GiB。项目目录始终约 2.2 GiB，不能据此断言空间波动来源。`storage.py --need-gib 3` 对下载够用，却不足以预测这次全参数运行峰值。再次运行全参数前必须留出更大运行时缓冲并持续监测，不能只看项目 `du`；清理后试跑期间观测系统可用约 82–92 GiB，已不因磁盘余量暂停；全参数仍因 Metal 稳定性和验证损失验收未通过而暂缓。
+```sh
+.venv/bin/python scripts/storage.py --need-gib N
+```
 
-数据原件和模型只在登记了 commit、URL、筛选规则、哈希、再下载方法后才能标为 `safe_to_delete=true`。处理后数据如果依赖人工审核记录，先保存审核记录。不要删除 benchmark 封存表、实验配置、锁文件和结果索引。2026-09-30：`.venv` 约 645 MiB，0.6B Base 模型约 1.1 GiB，已下载评测集及本阶段所选 PMC 全文；详见 `manifest.json` 和执行报告。全参数微调的一次保存等于模型大小（0.6B 约 1.2–2.4 GiB），不需要的冒烟产物可以删除，但要在报告里注明。
+The check requires project usage below 25 GiB and post-allocation free disk above 15 GiB. Runtime swap or temporary allocations can exceed download estimates; monitor actual disk free space during training. APFS sharing and transient allocations mean directory totals alone do not explain all filesystem changes.
+
+## Observed runtime boundary
+
+The original full-parameter attempt briefly reached about 13 GiB system free space and was stopped. The project itself remained around 2.2 GiB. After user cleanup, later attempts observed approximately 82–92 GiB free space; one completed full checkpoint raised project usage to 4.41 GiB. Current R2 pause concerns Metal stability and validation acceptance, rather than disk capacity.
+
+Opus observed heavy swap and suggested conservative formal-training thresholds: less than 1 GiB swap used before launch, record swap/disk each minute, stop when swap exceeds 4 GiB. These are project review thresholds, not official MLX hardware limits. The latest readiness check observed about 11 GiB used swap; the user was asked to prepare the system manually. Do not reboot or close apps automatically.
+
+## Deletion and recovery
+
+Mark a downloaded original/model safely deletable only after recording its source, exact revision, URL, bytes, SHA-256, purpose, filtering, licensing notes and re-download method. Keep human screening decisions before discarding dependent derived files. Preserve benchmark seals, frozen roles/exams, config, dependency lock, run indices and comparisons. Smoke artifacts may be deleted intentionally with a report entry; no artifacts were automatically removed here.

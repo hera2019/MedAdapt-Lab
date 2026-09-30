@@ -23,7 +23,7 @@ DOCS = (
 SCRIPTS = (
     "build_exams.py", "common.py", "exam.py", "hf_download.py", "lm.py",
     "pmc_adhd.py", "prepare_dapt.py", "qgen_helper.py", "seal_benchmarks.py",
-    "selftest.py", "setup_env.sh", "storage.py", "train.py", "public_snapshot.py",
+    "selftest.py", "setup_env.sh", "storage.py", "train.py", "public_snapshot.py", "resource_guard.py",
 )
 FILES = (
     ".gitignore", "AGENTS.md", "CLAUDE.md", "README.md", "requirements.in",
@@ -48,10 +48,12 @@ def git(*args, env=None, data=None):
     return subprocess.check_output(["git", *args], cwd=ROOT, env=env, input=data)
 
 
-def inspect_file(path, data):
+def inspect_file(path, data, require_english=True):
     if len(data) > 512 * 1024:
         raise RuntimeError(f"public file exceeds 512 KiB: {path}")
     text = data.decode("utf-8")
+    if require_english and re.search(r"[\u3400-\u9fff]", text):
+        raise RuntimeError(f"new public content must be English: {path}")
     for label, pattern in PATTERNS.items():
         match = pattern.search(text)
         if match:
@@ -114,7 +116,7 @@ def verify_history(ref, allowed):
                 raise RuntimeError(f"unexpected public history entry: {path}")
             key = (path, sha)
             if key not in seen:
-                inspect_file(path, git("cat-file", "blob", sha))
+                inspect_file(path, git("cat-file", "blob", sha), require_english=False)
                 seen.add(key)
     return len(commits)
 

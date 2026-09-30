@@ -1,11 +1,22 @@
-# 许可与出处边界
+# Project license and resource boundaries
 
-核查日期：2026-09-29。此文是数据处理规则，不是法律意见。
+Updated 2026-09-30 by Codex / GPT-6. The owner approved the jointly recommended **Apache-2.0** project license.
 
-- [PMC OAI-PMH](https://pmc.ncbi.nlm.nih.gov/tools/oai/) 说明每篇许可不同，只有指定服务可用于自动全文获取。文章“免费阅读”不等于可用于训练。只接纳逐篇可识别的 CC0 / CC BY / CC BY-SA；CC BY-SA 的改编与发布义务另行核查。CC BY-NC、ND、缺失或不明许可先排除。保留题名、作者、期刊、年份、PMCID、DOI、许可 URL 与获取日期；发布语料或适配器前再复核附带材料与署名义务。
-- [MedMCQA 仓库](https://huggingface.co/datasets/openlifescienceai/medmcqa) 标 Apache-2.0，遵循其署名和 NOTICE 条件；原始题目若有第三方来源，应检查仓库说明。
-- [PubMedQA 仓库](https://github.com/pubmedqa/pubmedqa/blob/master/LICENSE) 标 MIT；题目包含论文摘要上下文，单独核查引用内容的权利。仅评测，暂不训练。
-- [AfriMed-QA 公共镜像](https://huggingface.co/datasets/afrimedqa/afrimedqa_v2) 标 CC BY 4.0；[另一个版本](https://huggingface.co/datasets/intronhealth/afrimedqa_v2) 标 CC BY-SA 4.0 且有访问条件。先核查同源版本和使用条件，勿混用。
-- 当前已下载的 [Qwen3-0.6B-Base](https://huggingface.co/Qwen/Qwen3-0.6B-Base) 在固定版本中附带 Apache-2.0 `LICENSE`，本地路径 `models/qwen3-0.6b-base/LICENSE`，其 SHA-256 已登记在 `manifest.json`。候选 [Qwen3-1.7B-Base](https://huggingface.co/Qwen/Qwen3-1.7B-Base) 尚未下载；下载前复核对应固定版本的许可文件。暂缓的 [Qwen3-14B-Base](https://huggingface.co/Qwen/Qwen3-14B-Base) 如以后使用转换版，需同时记录转换包和上游来源许可、commit。
+## Original project material
 
-每次下载都在 `manifest.json` 记录来源、URL、版本或 commit、下载日期、许可证、原始及本地大小、路径、SHA-256、用途、筛选规则、删除和重下方式以及注意事项。缺一项不进入可复现训练。机器无法确定的字段填 `null` 并保持 `planned` / `review_required`，不要猜测。
+Original source code, configuration and documentation are covered by [LICENSE](../LICENSE). [NOTICE](../NOTICE) records the external-resource boundary. The official license text was retrieved on 2026-09-30 from https://www.apache.org/licenses/LICENSE-2.0.txt; SHA-256: `cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30`.
+
+The project license does not transfer rights to third-party data, publications, benchmarks, base checkpoints or adapters. Those resources are not bundled in this public repository. See [the selection record](LICENSE_REVIEW.md).
+
+## External resources
+
+- [PMC OAI-PMH](https://pmc.ncbi.nlm.nih.gov/tools/oai/): terms vary by article. Accept only clearly identified CC0 / CC BY / CC BY-SA. Exclude NC, ND, absent, conflicting or unknown terms. Preserve title, authors, journal, year, PMCID/DOI, license URL and retrieval date. Assess ShareAlike, third-party materials and attribution separately before releasing text or adapters.
+- [MedMCQA](https://huggingface.co/datasets/openlifescienceai/medmcqa): repository labels Apache-2.0; retain applicable license/NOTICE attribution and inspect third-party question provenance.
+- [PubMedQA](https://github.com/pubmedqa/pubmedqa/blob/master/LICENSE): repository labels MIT; paper-abstract context may have separate rights. Evaluation only.
+- [AfriMed-QA public mirror](https://huggingface.co/datasets/afrimedqa/afrimedqa_v2): CC BY 4.0 label. [Intronhealth version](https://huggingface.co/datasets/intronhealth/afrimedqa_v2): CC BY-SA 4.0 and access conditions. Do not conflate versions; not downloaded.
+- WikiText-103 test: CC BY-SA 3.0; evaluation only, not distributed here.
+- [Qwen3-0.6B-Base](https://huggingface.co/Qwen/Qwen3-0.6B-Base): pinned downloaded checkpoint includes Apache-2.0 LICENSE, locally hash-registered. [Qwen3-1.7B-Base](https://huggingface.co/Qwen/Qwen3-1.7B-Base) remains a candidate; verify its pinned license on acquisition. Any later MLX conversion requires both converter and upstream provenance/revisions.
+
+Every download must record name/source/URL, exact revision, date, terms, original/local sizes, path, SHA-256 where applicable, DAPT/SFT/eval purpose, filtering, deletion/re-download instructions and licensing caveats. Unknown fields remain null with `planned` or `review_required` status; do not invent certainty.
+
+These are project processing rules and source-review records, not a definitive legal assessment of future dataset or model releases.

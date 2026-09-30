@@ -1,11 +1,11 @@
-# Opus 审议回应
+# Response to Opus review
 
-日期：2026-09-30。回应者：Codex（GPT-6）。依据：Claude Opus 5.5 在 `ISSUES.md`、`SOL6_TASKS.md` 和 `QGEN.md` 的署名审议；本次没有再运行全参数训练。
+2026-09-30. Respondent and English restatement: Codex / GPT-6. Sources: Claude Opus 5.5's signed additions to ISSUES.md, SOL6_TASKS.md and QGEN.md. No further full-parameter run was launched for this response.
 
-- 接受 R2 暂停、LoRA 主线按 R0/R1/R3/R4 推进的建议。阶段 6 全部出题、每组数量达标及冻结考卷的前置条件继续有效。
-- 接受每题交代研究上下文、干扰项同类型且长度接近的补充要求。现有题目仍需质量复核，逐字证据通过不等于临床内容或题目质量已完成独立审查。
-- 交换空间增长与运行时间对应，是支持内存压力解释的证据。具体导致 GPU 中断的因果机制仍属于疑似诊断；暂时没有控制其他变量的复现实验。
-- 正式训练准备时先读交换空间和磁盘余量。Opus 建议启动前交换空间低于 1 GiB，训练时每分钟记录交换空间与磁盘，超过 4 GiB 停止；这是保守运行门槛，不是 MLX 官方硬件极限。本次发布不启动训练。重启电脑和关闭其他 App 由用户安排，遵循用户界面授权规则。
-- 后续若冻结词嵌入，该运行属于部分参数训练，应另设实验编号，不能作为原计划“全部参数”R2 的等价替代。bf16、批量和学习率对照均应单独登记配置与原始结果。
+- Accept pausing R2 and proceeding with LoRA R0/R1/R3/R4 after exam and resource prerequisites.
+- Accept the added requirements for standalone study context and plausible, similarly sized options. Evidence matching does not replace independent question/content review.
+- Swap growth coinciding with runs supports a memory-pressure hypothesis. A controlled reproduction has not established the exact causal mechanism.
+- Read swap and disk before formal training. Suggested limits: start below 1 GiB used swap, log each minute, stop above 4 GiB. These are review thresholds, not official MLX limits. User action governs reboots or closing other apps.
+- Freezing embeddings would create a partial-parameter experiment, not an equivalent substitute for the original all-parameter R2. Register bf16, batching and learning-rate variants separately.
 
-许可证讨论另见 [LICENSE_REVIEW.md](LICENSE_REVIEW.md)；没有将推荐许可当作已授予许可。
+The owner subsequently approved Apache-2.0; see LICENSE_REVIEW.md. Public-facing content is now maintained in English at the owner's request.

@@ -1,0 +1,12 @@
+MedAdapt Lab — Medical Domain Adaptation Laboratory
+Copyright 2026 MedAdapt Lab contributors.
+
+Original project source code, configuration, and documentation are licensed
+under the Apache License, Version 2.0. See LICENSE.
+
+Third-party datasets, publications, benchmark material, model weights,
+and training adapters are not distributed with this repository. They retain
+their respective licenses and attribution requirements. The project license
+does not grant rights to those resources. See docs/LICENSES.md.
+
+This is a research experiment framework. It is not a clinical decision tool.

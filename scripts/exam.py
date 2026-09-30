@@ -26,11 +26,11 @@ MIN_ITEMS = 10  # below this no exam is called significant, whatever the interva
 
 # What each exam role is expected to show after ADHD DAPT; used to phrase the report.
 ROLE_TEXT = {
-    "knowledge": "A 组：训练论文里的新知识（应提升）",
-    "control": "B 组：未训练论文的同类题（对照，理想情况不变）",
-    "domain": "未见过的 2026 ADHD 论文困惑度（应下降）",
-    "forgetting": "通用文本困惑度（遗忘监测，不应明显上升）",
-    "transfer": "现成医学题库（迁移，预期变化小）",
+    "knowledge": "Group A: new knowledge from trained papers (expected to improve)",
+    "control": "Group B: questions from untrained papers (control; ideally unchanged)",
+    "domain": "Unseen 2026 ADHD paper perplexity (expected to decrease)",
+    "forgetting": "General-text perplexity (forgetting monitor; should not increase substantially)",
+    "transfer": "Existing medical QA (transfer; small changes expected)",
 }
 
 
@@ -190,11 +190,11 @@ def write_log_md(results_root=RESULTS):
     names = []
     for row in rows:
         names += [n for n in row["exams"] if n not in names]
-    lines = ["# 考试记录", "", "每行一次考试；PPL 越低越好，百分比为 acc_norm。明细见 `results/exams/<run_id>/`。", "",
-             "| 时间 | run_id | 模型 | 适配器 | " + " | ".join(names) + " |",
+    lines = ["# Exam ledger", "", "One exam run per row. Lower PPL is better; percentages are acc_norm. Details: `results/exams/<run_id>/`.", "",
+             "| Time | run_id | Model | Adapter | " + " | ".join(names) + " |",
              "|---|---|---|---|" + "---|" * len(names)]
     for row in rows:
-        adapter = row["adapter"]["run_id"] if row["adapter"] else "无（基线）"
+        adapter = row["adapter"]["run_id"] if row["adapter"] else "None (baseline)"
         cells = [headline(row["exams"][n]["type"], row["exams"][n]) if n in row["exams"] else "" for n in names]
         partial = f" (limit {row['limit']})" if row["limit"] else ""
         lines.append(f"| {row['date']} | `{row['run_id']}`{partial} | {Path(row['model']['path'] or 'selftest').name} "
@@ -250,15 +250,15 @@ def compare(run_a, run_b, results_root=RESULTS, index_path=INDEX, out=None):
             tb = np.array([rows_b[i]["tokens"] for i in ids])
             ppl_a, ppl_b = math.exp(na.sum() / ta.sum()), math.exp(nb.sum() / tb.sum())
             lo, hi = _bootstrap(lambda s: math.exp(nb[s].sum() / tb[s].sum() - na[s].sum() / ta[s].sum()), len(ids))
-            verdict = ("题量太少，不判定" if len(ids) < MIN_ITEMS else
-                       "显著下降（变好）" if hi < 1 else "显著上升（变差）" if lo > 1 else "无显著变化")
+            verdict = ("Too few items; no verdict" if len(ids) < MIN_ITEMS else
+                       "Significant decrease (better)" if hi < 1 else "Significant increase (worse)" if lo > 1 else "No significant change")
             table.append(f"| {name} | {ROLE_TEXT.get(ea['role'], ea['role'])} | {len(ids)} | PPL {ppl_a:.3f} | "
                          f"PPL {ppl_b:.3f} | {100 * (ppl_b / ppl_a - 1):+.2f}% | [{100 * (lo - 1):+.2f}%, {100 * (hi - 1):+.2f}%] | {verdict} |")
             per_doc = sorted(((nb[k] / tb[k] - na[k] / ta[k], i) for k, i in enumerate(ids)))
             better = [f"`{i}` {d:+.3f}" for d, i in per_doc[:5] if d < 0]
             worse = [f"`{i}` {d:+.3f}" for d, i in per_doc[::-1][:5] if d > 0]
-            details.append(f"### {name}\n\n每 token NLL 变化（负数为进步）。进步最多：" + ("，".join(better) or "无") +
-                           "\n\n退步最多：" + ("，".join(worse) or "无") + "\n")
+            details.append(f"### {name}\n\nPer-token NLL change (negative means improvement). Largest improvements: " + (", ".join(better) or "None") +
+                           "\n\nLargest regressions: " + (", ".join(worse) or "None") + "\n")
             report["exams"][name] = {"n": len(ids), "ppl_a": ppl_a, "ppl_b": ppl_b, "ratio_ci95": [lo, hi], "verdict": verdict}
         else:
             ca = np.array([rows_a[i]["correct"] for i in ids])
@@ -271,32 +271,32 @@ def compare(run_a, run_b, results_root=RESULTS, index_path=INDEX, out=None):
             lost = [i for k, i in enumerate(ids) if cb[k] < ca[k]]
             p_value = _mcnemar(len(gained), len(lost))
             # Both the bootstrap interval and McNemar's exact test must agree.
-            verdict = ("题量太少，不判定" if len(ids) < MIN_ITEMS else
-                       "显著提升" if lo > 0 and p_value < 0.05 else
-                       "显著下降" if hi < 0 and p_value < 0.05 else "无显著变化")
+            verdict = ("Too few items; no verdict" if len(ids) < MIN_ITEMS else
+                       "Significant improvement" if lo > 0 and p_value < 0.05 else
+                       "Significant decline" if hi < 0 and p_value < 0.05 else "No significant change")
             table.append(f"| {name} | {ROLE_TEXT.get(ea['role'], ea['role'])} | {len(ids)} | {100 * ca.mean():.1f}% | "
-                         f"{100 * cb.mean():.1f}% | {100 * (cb.mean() - ca.mean()):+.1f} 点 | "
+                         f"{100 * cb.mean():.1f}% | {100 * (cb.mean() - ca.mean()):+.1f} pp | "
                          f"[{100 * lo:+.1f}, {100 * hi:+.1f}] | {verdict} |")
 
             def show(i):
                 q = items.get(i, {}).get("prompt", "").replace("\n", " ")
                 return f"- `{i}` {q[:140]}"
             details.append(
-                f"### {name}\n\n正确答案平均概率：{pa.mean():.3f} → {pb.mean():.3f}（差值 95% CI "
-                f"[{plo:+.3f}, {phi:+.3f}]）。McNemar p = {p_value:.3g}。\n\n"
-                f"由错变对 {len(gained)} 题：\n" + "\n".join(show(i) for i in gained[:10]) +
-                f"\n\n由对变错 {len(lost)} 题：\n" + "\n".join(show(i) for i in lost[:10]) + "\n")
+                f"### {name}\n\nMean correct-option probability: {pa.mean():.3f} → {pb.mean():.3f}(difference 95% CI "
+                f"[{plo:+.3f}, {phi:+.3f}]).McNemar p = {p_value:.3g}.\n\n"
+                f"Changed from incorrect to correct: {len(gained)} items: \n" + "\n".join(show(i) for i in gained[:10]) +
+                f"\n\nChanged from correct to incorrect: {len(lost)} items: \n" + "\n".join(show(i) for i in lost[:10]) + "\n")
             report["exams"][name] = {"n": len(ids), "acc_a": float(ca.mean()), "acc_b": float(cb.mean()),
                                      "diff_ci95": [lo, hi], "p_correct_diff_ci95": [plo, phi],
                                      "gained": gained, "lost": lost, "mcnemar_p": p_value, "verdict": verdict}
     notes = interpret(report, sa, sb)
-    md = [f"# 训练成果对比：`{sa['run_id']}` → `{sb['run_id']}`", "",
-          f"- 之前：{sa['label']}，适配器 {sa['adapter']['run_id'] if sa['adapter'] else '无'}",
-          f"- 之后：{sb['label']}，适配器 {sb['adapter']['run_id'] if sb['adapter'] else '无'}",
-          f"- 考卷版本：{sa['exam_version']}；只比较两次都考过、考卷哈希相同的题。CI 为逐题配对 bootstrap。", "",
-          "## 结论", "", *[f"- {n}" for n in notes], "",
-          "## 各科", "", "| 考试 | 含义 | 题数 | 之前 | 之后 | 变化 | 95% CI | 判定 |",
-          "|---|---|---:|---:|---:|---:|---|---|", *table, "", "## 明细", "", *details]
+    md = [f"# Training outcome comparison: `{sa['run_id']}` → `{sb['run_id']}`", "",
+          f"- Before: {sa['label']}, adapter {sa['adapter']['run_id'] if sa['adapter'] else 'None'}",
+          f"- After: {sb['label']}, adapter {sb['adapter']['run_id'] if sb['adapter'] else 'None'}",
+          f"- Exam version: {sa['exam_version']}; compare only shared items with matching exam hashes. CIs use paired item bootstrap.", "",
+          "## Conclusions", "", *[f"- {n}" for n in notes], "",
+          "## Exams", "", "| Exam | Role | Items | Before | After | Change | 95% CI | Verdict |",
+          "|---|---|---:|---:|---:|---:|---|---|", *table, "", "## Details", "", *details]
     out = Path(out) if out else dir_b / f"compare_vs_{sa['run_id']}.md"
     out.write_text("\n".join(md) + "\n", encoding="utf-8")
     atomic_json(out.with_suffix(".json"), report)
@@ -311,29 +311,29 @@ def interpret(report, sa, sb):
     notes = []
     know, ctrl = pick("knowledge"), pick("control")
     if know:
-        up = any(e["verdict"] == "显著提升" for e in know)
-        ctrl_up = any(e["verdict"] == "显著提升" for e in ctrl)
+        up = any(e["verdict"] == "Significant improvement" for e in know)
+        ctrl_up = any(e["verdict"] == "Significant improvement" for e in ctrl)
         if up and not ctrl:
-            notes.append("A 组显著提升，但本次没有 B 组对照，分不清是记住了知识还是熟悉了题型。")
+            notes.append("Group A significantly improved, but no group B control is available; knowledge retention cannot be distinguished from format familiarity.")
         elif up and not ctrl_up:
-            notes.append("A 组显著提升而 B 组没有：模型记住了训练论文中的具体新知识。")
+            notes.append("Group A significantly improved while group B did not: the model retained specific new knowledge from the trained papers.")
         elif up and ctrl_up:
-            notes.append("A、B 两组都提升：至少一部分来自题型或领域熟悉度，不能全算作记住了具体知识。")
-        elif all(e["verdict"] == "题量太少，不判定" for e in know):
-            notes.append("A 组题量太少，无法判断。")
+            notes.append("Both groups improved: at least part may reflect format or domain familiarity rather than specific knowledge retention.")
+        elif all(e["verdict"] == "Too few items; no verdict" for e in know):
+            notes.append("Group A contains too few items to judge.")
         else:
-            notes.append("A 组没有显著提升：训练文本没有转化为可答题的知识（常见于只喂原文、不做改写的 DAPT）。")
+            notes.append("Group A did not significantly improve: training text did not translate into answerable knowledge (often observed in DAPT on unrewritten text).")
     for e in pick("domain"):
-        notes.append(f"未见过的新论文困惑度：{e['verdict']}（{100 * (e['ppl_b'] / e['ppl_a'] - 1):+.2f}%）。")
+        notes.append(f"Unseen new-paper perplexity: {e['verdict']}({100 * (e['ppl_b'] / e['ppl_a'] - 1):+.2f}%).")
     for e in pick("forgetting"):
         change = e["ppl_b"] / e["ppl_a"] - 1
-        notes.append(f"通用文本困惑度 {100 * change:+.2f}%" + ("，遗忘明显，考虑降学习率或混入通用语料。" if change > 0.05 else "。"))
+        notes.append(f"General-text perplexity {100 * change:+.2f}%" + ("; substantial forgetting: consider a lower learning rate or general-text mixing." if change > 0.05 else "."))
     small = [n for n in ex if MIN_ITEMS <= ex[n]["n"] < 50]
     if small:
-        notes.append("题量少于 50 的考试置信区间很宽，不要单独据此下结论：" + "、".join(small) + "。")
+        notes.append("Exams with fewer than 50 items have wide confidence intervals; do not conclude from them alone: " + ", ".join(small) + ".")
     if sa.get("limit") or sb.get("limit"):
-        notes.append("至少一次是抽样考试（--limit），只能作快速检查。")
-    return notes or ["没有可比较的考试。"]
+        notes.append("At least one exam used sampling (--limit); use it only as a quick check.")
+    return notes or ["No comparable exams."]
 
 
 # ---------------------------------------------------------------- CLI

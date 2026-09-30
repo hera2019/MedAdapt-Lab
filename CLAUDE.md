@@ -1,3 +1,3 @@
 # MedAdapt Lab
 
-请先读 [项目共同规则](docs/PROJECT_RULES.md)。这里与 `AGENTS.md` 指向同一份项目规则；每次修改都要由实际修改者署名。
+Read [the shared project rules](docs/PROJECT_RULES.md). AGENTS.md and CLAUDE.md use the same rules. Record each change under the actual agent and model in docs/CHANGES.md.
