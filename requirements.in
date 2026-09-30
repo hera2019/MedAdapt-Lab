@@ -1,0 +1,4 @@
+# Install only into this project's .venv, after reviewing docs/MODELS.md.
+mlx-lm[train]
+huggingface_hub
+pyarrow

@@ -1,0 +1,41 @@
+{
+  "experiment_id": "ADHD-01",
+  "status": "planned",
+  "task": "DAPT on licensed ADHD full text; measure with frozen exams before and after every run",
+  "model_path": "models/qwen3-0.6b-base",
+  "seed": 42,
+  "pmc": {
+    "pool_min_date": "2000/01/01",
+    "pool_max_date": "2025/12/31",
+    "new_min_date": "2026/01/01",
+    "new_heldout_fraction": 0.5
+  },
+  "data": {
+    "train": "data/train/adhd-01/train.jsonl",
+    "valid": "data/validation/adhd-01/valid.jsonl"
+  },
+  "training": {
+    "mode": "lora",
+    "rank": 16,
+    "alpha": 32.0,
+    "dropout": 0.0,
+    "num_layers": 0,
+    "seq_len": 1024,
+    "batch_size": 4,
+    "grad_accum": 2,
+    "iters": 500,
+    "lr": 0.0002,
+    "min_lr_ratio": 0.1,
+    "warmup": 30,
+    "weight_decay": 0.0,
+    "max_grad_norm": 1.0,
+    "log_every": 10,
+    "eval_every": 50,
+    "eval_batches": 25,
+    "seed": 42,
+    "full_dtype": "float32",
+    "cache_limit_gib": -1.0,
+    "wired_limit_gib": -1.0
+  },
+  "notes": "num_layers 0 = all layers. For --mode full use --lr 2e-5. Settings are a starting point, not a tuned result."
+}

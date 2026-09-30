@@ -1,0 +1,14 @@
+.venv/
+.cache/
+data/raw/
+data/processed/
+data/train/
+data/validation/
+data/test/
+models/
+adapters/
+results/*
+!results/*.md
+!results/FULL_SMOKE_DIAGNOSTIC.json
+*.part
+__pycache__/
