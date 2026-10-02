@@ -47,10 +47,14 @@ Multiple-choice scoring sums option log-probability after the prompt, divides by
 | R3 | EOS-prefixed LoRA on `new_train` only | Effect of corpus selection |
 | R4 | R1b at 2x steps (1000), independently from Base | Additional exposure |
 | R5 | 1.7B repeat of R1 | Deferred scale comparison |
-| ADHD-02 | Possible paraphrased/synthetic continued pretraining | Later experiment, not currently selected |
+| ADHD-02 / R5 | Original new-train text plus four blind rewrite styles; 500 updates, seeds 42/43 | Complete; no additional trained-paper QA advantage demonstrated. Same-seed R3 controls; all adverse/null results retained. See [the findings](../results/ADHD02_FINDINGS.md). |
 
 Before formal training, complete all queued paper records, validate evidence and quality, and meet at least 150 contributing papers / 400 valid questions per A/B group. Target roughly 600 questions per group. Freeze only once.
 
 Each formal training run obtains a baseline if absent, trains, examines the adapter and creates `compare_vs_baseline.md`. Preserve configs, data/model/adapter hashes, raw responses, training curves, peak memory and the comparison ledger. Use `exam.py compare` for additional paired run comparisons.
 
 Tune on training validation loss; exams measure outcomes rather than selecting settings repeatedly. If exam-informed changes occur, identify the iteration explicitly. Do not turn an incomplete smoke run or absence of statistical significance into a scientific improvement claim. Cite run IDs and actual paired reports in `results/FINDINGS.md` when those runs exist.
+
+## ADHD-02 completed follow-up
+
+2026-10-02, Codex / GPT-6 (root). The owner authorized a fixed overnight follow-up declared in `experiments/adhd-02/PLAN.md`: original-plus-rewrites seed42, original-only seed43 and original-plus-rewrites seed43, using the existing seed42 revised R3 control. Each independent Base-start LoRA trajectory processed 4,096,000 targets. Full frozen exams and both PPL protocols completed. The trained-minus-held-out matched change was -0.387 pp [-3.242,+2.504] for seed42 and -0.967 pp [-3.898,+1.992] for seed43 (95% paper-cluster intervals). Neither demonstrates an augmentation advantage. No scoring, frozen source or model change; two seeds, reused exams, exposure/packing confounds and no multiplicity correction limit inference. R2 remains paused; no further run/model download selected.

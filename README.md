@@ -11,6 +11,8 @@ The first experiment, **ADHD-01**, uses openly licensed ADHD papers and Qwen3 Ba
 - Full-parameter training is paused: several attempts encountered Metal errors; one completed run increased fixed-range validation loss.
 - R0, original R1, revised R1b (500 updates), R3 (new-only, 500) and R4 (full corpus, 1000) completed their full exams and paired comparisons. R2 remains paused. Revised R3 shows a larger trained-paper QA gain under an exploratory paper-cluster analysis; R4 improves domain PPL further than R1b with a small additional general-text regression. Both scoring protocols and original R1's adverse EOS results are preserved. The correction was outcome-informed; one seed and no multiplicity adjustment limit conclusions. See [the findings](results/FINDINGS.md).
 
+- ADHD-02 completed the fixed original-plus-blind-rewrites comparison at seeds 42/43. Neither seed demonstrated an additional trained-paper QA advantage at equal compute; domain/general prediction and medical controls were inconsistent, including a seed-42 PubMedQA decline. See [the ADHD-02 findings](results/ADHD02_FINDINGS.md) and [the declared plan](experiments/adhd-02/PLAN.md). No additional run is queued.
+
 ## Experiment design
 
 1. Split eligible 2026 papers once by PMCID into `new_train` and `new_heldout`, using seed 42. Held-out papers never enter training.

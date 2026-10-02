@@ -226,3 +226,21 @@ Full evidence remains local: frozen exam/role/split hashes, raw per-item likelih
 - **Generalization / forgetting / leakage:** improvement on excluded material / deterioration of prior abilities / allowing evaluation material to influence training or tuning. Here, EOS sensitivity limits broad forgetting claims; identifiers and dates do not eliminate every semantic overlap.
 - **EOS / Metal watchdog:** a special end-of-text token / the system mechanism that interrupted the legacy R3 attempt. An interrupted training run is not a zero score or evidence that the model learned nothing.
 
+
+## Reviewer check: is R3's trained-paper gain only verbatim-phrase familiarity?
+
+Claude (reviewer, Claude Opus 5.5), 2026-10-01. Exploratory and post hoc, with no confidence intervals; it reuses the frozen per-item results and changes no score.
+
+The question items were split into two classes: (a) the correct option's normalized text appears verbatim in the source paper and no distractor's does; (b) all other items. Accuracy change versus R0, in pp:
+
+| Group / class | n | R0 accuracy | R1b | R3 | R4 |
+|---|---:|---:|---:|---:|---:|
+| Trained, correct option verbatim in paper | 178 | 40.4% | +5.6 | +13.5 | +6.2 |
+| Trained, other | 540 | 32.8% | +1.1 | +7.0 | +2.2 |
+| Held-out, correct option verbatim in paper | 192 | 43.2% | +6.8 | +8.3 | +8.9 |
+| Held-out, other | 568 | 29.2% | +2.1 | +3.2 | +2.3 |
+
+- R3's trained-minus-held-out advantage appears in both classes: +5.2 pp for verbatim items and +3.8 pp for the rest. Verbatim matching alone therefore does not explain it.
+- In every run, verbatim-class items score higher at baseline and gain more in both groups. Options phrased like paper text are favoured by DAPT in general, which is one reason the held-out group improves.
+- Sink probe (`scripts/sink_probe.py`): EOS position-0 norm is 7,803 / 7,867 / 7,770 for R1b / R3 / R4, against 6,868 for the base and 84 for the original R1. With and without the EOS prefix, NLL agrees within 0.03 for all three, so the packing fix held at 500 and 1,000 steps.
+- Measurement weakness (design by Claude): `p_correct` is a softmax over character-normalized log-probabilities. That makes it nearly flat (about 0.25–0.27 everywhere; R3's change +0.014), so it is not a sensitive confidence measure. Use total or token-normalized log-probability in any future scoring version.

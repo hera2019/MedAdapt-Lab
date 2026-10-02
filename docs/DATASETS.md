@@ -47,3 +47,7 @@ The downloader is single-threaded, below three requests per second, and caps per
 ```
 
 `prepare_dapt.py` fails closed when the exclusion table is missing. QA SFT is not currently part of this experiment. Public clones exclude the owner's texts, benchmark questions, evidence questions and frozen local identities.
+
+## ADHD-02 local derivative
+
+2026-10-02, Codex / GPT-6 (root). The same 269 frozen new-train papers have 1,076 blind English rewrites, with four styles and actual authors recorded per paper. Preparation uses the approved checker and enforces 250–600 words/style, eligible/disjoint PMCID sets, source hashes and original/validation hashes. The combined DAPT corpus has 4,557 rows, 2,876,322 stream tokens and 14,196,806 bytes; original chunks are unchanged. Its SHA-256 is `d3f59e16125a347bdef900e6f43054404a51e97b4dc9cde4d83dbd38f3ee7a1a`. The complete derived-data provenance is local in `experiments/adhd-02/dataset_manifest.json`. It records each source license/URL/hash and rewrite author/hash, filtering, size and regeneration procedure. No new download was made. Source licensing and generated-content provenance still require review before any redistribution; the corpus is excluded from the public snapshot. Keep original rewrites and screening records; the combined JSONL can be regenerated using `scripts/prepare_adhd02.py`.

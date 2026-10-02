@@ -35,3 +35,7 @@ The latest revision adds the approved license and English public texts. Original
 ## Completed experiment update, 2026-10-01
 
 Codex / GPT-6 (root) prepared the 49-file scope with the reviewed sink diagnostic, checkpoint/resume framework and completed R1b/R3/R4 aggregate findings. The local Chinese companion, frozen data/exams, weights/adapters and detailed native records remain outside that scope. Publication requires the post-change selftest, content/history audit and remote commit/tree verification; their actual outcomes are recorded locally and in the execution report.
+
+## ADHD-02 aggregate update — 2026-10-02
+
+Operator: Codex / GPT-6 (root). The reviewed snapshot now contains 53 English files: the previous 49 plus the ADHD-02 declared plan and aggregate findings, and `augment_check.py` / `prepare_adhd02.py`. Actual helper authorship is retained. The derived manifest, rewrite corpus, raw papers/questions/exams, adapters, run details and Chinese explanation remain local. The explicit sensitive-content/history/English audit passed; native selftests passed after the allowlist change. Prepare/push and remote blob verification are recorded separately in the local publication verification file; this entry does not itself assert a remote update.
