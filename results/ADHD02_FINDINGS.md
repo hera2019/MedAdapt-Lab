@@ -85,3 +85,23 @@ EOS sink norms: Base 6868, augmented seed42 7415, augmented seed43 7835. Both re
 - **augmented, seed 42:** `20261001T175323Z-lora-adhd02-r5-aug-seed42`. EOS exam `20261001T183725Z-after-20261001T175323Z-lora-adhd02-r5-aug-seed42`; no-EOS exam `20261001T184624Z-after-20261001T175323Z-lora-adhd02-r5-aug-seed42`. Adapter SHA-256 `ab9529fa56207a2d17ef061b4fbd0e151e5cf23f37478ec0b5fe3feb9fcf1aef`.
 - **original, seed 43:** `20261001T185018Z-lora-adhd02-r3-original-seed43`. EOS exam `20261001T193413Z-after-20261001T185018Z-lora-adhd02-r3-original-seed43`; no-EOS exam `20261001T194313Z-after-20261001T185018Z-lora-adhd02-r3-original-seed43`. Adapter SHA-256 `94be5f5f94580b1aa1a7cb65e319e79f15bcd080e2d82fabd55043ed78a56993`.
 - **augmented, seed 43:** `20261001T194707Z-lora-adhd02-r5-aug-seed43`. EOS exam `20261001T203101Z-after-20261001T194707Z-lora-adhd02-r5-aug-seed43`; no-EOS exam `20261001T204001Z-after-20261001T194707Z-lora-adhd02-r5-aug-seed43`. Adapter SHA-256 `335368cb60e9ab903d90055dd88edbb9ccbb3300a55aecb078e06c729087cf76`.
+
+## Reviewer check (Claude, Claude Opus 5.5, 2026-10-02)
+
+Exploratory and post hoc; it reuses the frozen per-item results and changes no score.
+
+**1. Each run against R0.** The paper-cluster bootstrap matches the procedure above (5,000 replicates, seed 20261001). Every run trained only on new_train papers has a positive trained-minus-held-out estimate:
+
+| Run | Trained change | Held-out change | Trained − held-out | 95% paper-cluster CI |
+|---|---:|---:|---:|---|
+| R3 original, seed 42 | +8.64 | +4.47 | +4.16 | [+0.42, +7.97] |
+| R3 original, seed 43 | +9.47 | +5.66 | +3.81 | [−0.18, +7.73] |
+| R5 augmented, seed 42 | +8.77 | +5.00 | +3.77 | [−0.28, +7.65] |
+| R5 augmented, seed 43 | +8.64 | +5.79 | +2.85 | [−1.11, +6.70] |
+
+The seed-43 replication of R3 gives a similar estimate (+3.8 vs +4.2 pp) with an interval just touching zero. All four estimates point the same way. Taken together, concentrated training on the 269 papers gives a modest trained-paper-specific gain of roughly 3–4 pp; no single run is decisive.
+
+**2. Why the rewrites added nothing: dose, not coverage.**
+- 410 of the 718 trained-paper answers have every content word present in that paper's rewrites, and 283 more have some. Even the fully covered items show no augmentation gain: −0.7 / −1.2 pp for seeds 42 / 43.
+- The rewrites are small: a median of about 1,100 words per paper, 13.8% of the augmented stream, each read about 1.4 times.
+- Published synthetic continued-pretraining results use synthetic text many times larger than the source. This experiment therefore tests a small, Claude-specified dose (250–600 words per style). It does not show that augmentation fails in general.

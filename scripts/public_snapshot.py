@@ -23,12 +23,13 @@ DOCS = (
 SCRIPTS = (
     "build_exams.py", "common.py", "exam.py", "hf_download.py", "lm.py",
     "pmc_adhd.py", "prepare_dapt.py", "qgen_helper.py", "seal_benchmarks.py",
-    "selftest.py", "setup_env.sh", "storage.py", "train.py", "public_snapshot.py", "resource_guard.py", "sink_probe.py", "augment_check.py", "prepare_adhd02.py",
+    "selftest.py", "setup_env.sh", "storage.py", "train.py", "public_snapshot.py", "resource_guard.py", "sink_probe.py", "augment_check.py", "prepare_adhd02.py", "run_adhd03.py",
 )
 FILES = (
     ".gitignore", "AGENTS.md", "CLAUDE.md", "README.md", "requirements.in",
     "experiments/adhd-01/config.json", "experiments/adhd-01/requirements.lock.txt",
-    "results/SOL6_REPORT.md", "results/FINDINGS.md", "results/ADHD02_FINDINGS.md", "experiments/adhd-02/PLAN.md",
+    "results/SOL6_REPORT.md", "results/FINDINGS.md", "results/ADHD02_FINDINGS.md", "experiments/adhd-02/PLAN.md", "results/ADHD03_FINDINGS.md",
+    "experiments/adhd-03/PLAN.md", "experiments/adhd-03/config.json",
 ) + tuple(f"docs/{name}.md" for name in DOCS) + tuple(f"scripts/{name}" for name in SCRIPTS)
 MARKERS = tuple(f"{name}/.gitkeep" for name in (
     "data/raw", "data/processed", "data/train", "data/validation", "data/test",

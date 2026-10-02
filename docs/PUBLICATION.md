@@ -1,6 +1,6 @@
 # Public GitHub publication
 
-Updated 2026-10-01 by Codex / GPT-6. Repository: [hera2019/MedAdapt-Lab](https://github.com/hera2019/MedAdapt-Lab), public. Project license: Apache-2.0. All future public content is English.
+Updated 2026-10-02 by Codex / GPT-6 (root). Repository: [hera2019/MedAdapt-Lab](https://github.com/hera2019/MedAdapt-Lab), public. Project license: Apache-2.0. All future public content is English.
 
 ## Published scope
 
@@ -39,3 +39,7 @@ Codex / GPT-6 (root) prepared the 49-file scope with the reviewed sink diagnosti
 ## ADHD-02 aggregate update — 2026-10-02
 
 Operator: Codex / GPT-6 (root). The reviewed snapshot now contains 53 English files: the previous 49 plus the ADHD-02 declared plan and aggregate findings, and `augment_check.py` / `prepare_adhd02.py`. Actual helper authorship is retained. The derived manifest, rewrite corpus, raw papers/questions/exams, adapters, run details and Chinese explanation remain local. The explicit sensitive-content/history/English audit passed; native selftests passed after the allowlist change. Prepare/push and remote blob verification are recorded separately in the local publication verification file; this entry does not itself assert a remote update.
+
+## ADHD-03 aggregate update — 2026-10-02
+
+Operator: Codex / GPT-6 (root). Explicit scope expands from53 to57 files: ADHD-03 aggregate English findings, frozen historical plan/config and the readiness-by-default launcher. Preparation readiness, detailed run/guard/paired/cluster records, Chinese explanation, model files, corpus/exams and local manifest/history remain private. The new aggregate report was checked against the complete frozen summaries; it preserves PubMedQA scoring sensitivity and general PPL regression, and distinguishes starting knowledge from adaptation. Native selftests passed after the allowlist change. The57-file English/content/history audit passed (no flagged sensitive patterns); manual review of newly allowed files found no private paths or item-level data. Prepare/push and exact remote commit/blob verification are recorded in the private publication evidence; this paragraph alone does not assert remote completion.

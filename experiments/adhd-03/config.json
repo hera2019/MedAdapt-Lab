@@ -1,0 +1,39 @@
+{
+  "experiment_id": "ADHD-03",
+  "status": "prepared_awaiting_owner_start",
+  "author": "Codex / GPT-6 (root)",
+  "model_path": "models/qwen3-1.7b-base",
+  "model_repo": "Qwen/Qwen3-1.7B-Base",
+  "model_revision": "ea980cb0a6c2ae4b936e82123acc929f1cec04c1",
+  "reference_run": "20260930T184551Z-lora-r3-newonly-eosprefix",
+  "data": {
+    "train": "data/train/adhd-01/train_new.jsonl",
+    "valid": "data/validation/adhd-01/valid.jsonl"
+  },
+  "training": {
+    "mode": "lora",
+    "rank": 16,
+    "alpha": 32.0,
+    "dropout": 0.0,
+    "num_layers": 0,
+    "seq_len": 1024,
+    "batch_size": 1,
+    "grad_accum": 8,
+    "iters": 500,
+    "lr": 0.0002,
+    "min_lr_ratio": 0.1,
+    "warmup": 30,
+    "weight_decay": 0.0,
+    "max_grad_norm": 1.0,
+    "log_every": 10,
+    "eval_every": 50,
+    "eval_batches": 100,
+    "seed": 42,
+    "full_dtype": "float32",
+    "cache_limit_gib": 2.0,
+    "wired_limit_gib": -1.0,
+    "window_prefix_eos": true,
+    "checkpoint_every": 50
+  },
+  "notes": "Exact completed revised R3 seed42 settings; independent 1.7B Base-start; own baseline mandatory. Await human start notification."
+}

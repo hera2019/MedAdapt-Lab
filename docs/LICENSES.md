@@ -20,3 +20,7 @@ The project license does not transfer rights to third-party data, publications, 
 Every download must record name/source/URL, exact revision, date, terms, original/local sizes, path, SHA-256 where applicable, DAPT/SFT/eval purpose, filtering, deletion/re-download instructions and licensing caveats. Unknown fields remain null with `planned` or `review_required` status; do not invent certainty.
 
 These are project processing rules and source-review records, not a definitive legal assessment of future dataset or model releases.
+
+## Acquired 1.7B Base checkpoint — 2026-10-02
+
+Codex / GPT-6 (root) verified the pinned upstream LICENSE for Qwen/Qwen3-1.7B-Base commit ea980cb0a6c2ae4b936e82123acc929f1cec04c1 as Apache-2.0 and retained the downloaded LICENSE. Eight exact file hashes and individual URLs are registered locally. Preserve applicable license/notices when redistributing; weights are not included in the public project snapshot. Shared-directory placement does not make deletion automatically safe.

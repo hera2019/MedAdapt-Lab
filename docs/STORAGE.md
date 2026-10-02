@@ -27,3 +27,7 @@ Opus observed heavy swap and suggested conservative formal-training thresholds: 
 ## Deletion and recovery
 
 Mark a downloaded original/model safely deletable only after recording its source, exact revision, URL, bytes, SHA-256, purpose, filtering, licensing notes and re-download method. Keep human screening decisions before discarding dependent derived files. Preserve benchmark seals, frozen roles/exams, config, dependency lock, run indices and comparisons. Smoke artifacts may be deleted intentionally with a report entry; no artifacts were automatically removed here.
+
+## Shared 1.7B preparation — 2026-10-02
+
+Measured by Codex / GPT-6 (root): project physical files 4.78 GiB, new selected shared model 3.22 GiB, attributed total 7.99 GiB against the 25GiB project budget. System free disk 97.01 GiB, above the 15GiB reserve. The project walker does not traverse directory symlinks, so the selected shared checkpoint is charged separately for this preparation check; it is one physical copy. Approved-helper acquisition reserved 7GiB for staging before download. The verified directory was moved on the same volume and linked into models, without copying or removing existing shared models. Preserve the logical/resolved manifest entries and review all consumers before deletion.

@@ -13,6 +13,8 @@ The first experiment, **ADHD-01**, uses openly licensed ADHD papers and Qwen3 Ba
 
 - ADHD-02 completed the fixed original-plus-blind-rewrites comparison at seeds 42/43. Neither seed demonstrated an additional trained-paper QA advantage at equal compute; domain/general prediction and medical controls were inconsistent, including a seed-42 PubMedQA decline. See [the ADHD-02 findings](results/ADHD02_FINDINGS.md) and [the declared plan](experiments/adhd-02/PLAN.md). No additional run is queued.
 
+- ADHD-03 completed one 1.7B Base repeat of original-only R3 with its own baselines. Higher final paper-QA scores partly reflect higher starting scores; no larger adaptation gain or faster factual learning was demonstrated. ADHD PPL improved, general PPL regressed and frozen PubMedQA primary accuracy declined. See [the ADHD-03 findings](results/ADHD03_FINDINGS.md).
+
 ## Experiment design
 
 1. Split eligible 2026 papers once by PMCID into `new_train` and `new_heldout`, using seed 42. Held-out papers never enter training.
@@ -29,7 +31,7 @@ Apple M2 Max, 32 GB unified memory. Project budget: **25 GiB**; minimum system f
 | Stage | Model | Plan |
 |---|---|---|
 | Initial | Qwen3-0.6B-Base, bf16 | LoRA main experiments; full-parameter R2 paused |
-| Later | Qwen3-1.7B-Base, bf16 | Revisit after the initial experiment and resource review |
+| Completed scale repeat | Qwen3-1.7B-Base, bf16 | One original-only R3 trajectory; full own-baseline/post evaluation complete |
 | Deferred | 8B / 14B Base in MLX | Verify provenance and practical training capacity first |
 
 Existing VoxStage 14B and 30B GGUF models are post-trained inference models. They are not used as Base DAPT checkpoints. See [MODELS.md](docs/MODELS.md).

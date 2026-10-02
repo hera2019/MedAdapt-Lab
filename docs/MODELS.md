@@ -5,19 +5,19 @@ Updated 2026-09-30. Original plan: Claude. Measurements and English restatement:
 | Stage | Model | Reason and status |
 |---|---|---|
 | Initial | Qwen3-0.6B-Base, bf16, unquantized | 500-step formal R1 and all post-exams completed with microbatch 1 / accumulation 8, 5.714 GiB peak. Both question groups improved; EOS-prefixed PPL regressed. Full-parameter control is paused |
-| Later | Qwen3-1.7B-Base, bf16 | Revisit scale after interpretable initial results; not downloaded |
+| Prepared; owner start pending | Qwen3-1.7B-Base, bf16 | Owner-selected R3 repeat; pinned files acquired and verified in shared AI-Models; MLX load/LoRA shapes pass. No baseline or training started |
 | Deferred | 8B / 14B quantized MLX Base | Verify conversion provenance, memory and useful training capacity before choosing |
 
 Official checkpoint revisions recorded in the plan:
 
 - 0.6B: `da87bfb608c14b7cf20ba1ce41287e8de496c0cd`, selected weights roughly 1.15 GB. Downloaded locally; upstream LICENSE checked.
-- 1.7B: `ea980cb0a6c2ae4b936e82123acc929f1cec04c1`, roughly 3.29 GB. Candidate only; recheck its license when acquiring it.
+- 1.7B: `ea980cb0a6c2ae4b936e82123acc929f1cec04c1`, 3,452,687,825 selected bytes (3.45 decimal GB / 3.22 GiB). Downloaded and checked on 2026-10-02; pinned upstream Apache-2.0 LICENSE verified.
 
 ## Measured boundary
 
 The 0.6B LoRA smoke used rank 16, sequence 1024, microbatch 4 and accumulation 2. Thirty steps completed; MLX peak memory was 18.21 GiB and validation loss changed from 2.114 to 2.094.
 
-The original full-parameter float32 attempt was interrupted when system free disk space fell from about 27 GiB to 13 GiB. After cleanup, a microbatch 1 / accumulation 8 run with 1 GiB cache and 20 GiB wired limit completed 30 steps at 15.68 GiB peak memory. On the original fixed 100 validation windows, loss increased from 2.11375 to 2.24032. Other attempts, including lower learning rate and smaller command buffers, still encountered Metal `Impacting Interactivity` errors. Memory-pressure/swap evidence supports a suspected explanation, not a confirmed causal diagnosis. R2 and model expansion remain deferred.
+The original full-parameter float32 attempt was interrupted when system free disk space fell from about 27 GiB to 13 GiB. After cleanup, a microbatch 1 / accumulation 8 run with 1 GiB cache and 20 GiB wired limit completed 30 steps at 15.68 GiB peak memory. On the original fixed 100 validation windows, loss increased from 2.11375 to 2.24032. Other attempts, including lower learning rate and smaller command buffers, still encountered Metal `Impacting Interactivity` errors. Memory-pressure/swap evidence supports a suspected explanation, not a confirmed causal diagnosis. R2 remains deferred. The owner separately selected 1.7B on 2026-10-02; only model preparation is complete, with no new formal-training result.
 
 ## Training implementation
 
@@ -44,3 +44,11 @@ python3 -m venv .venv
 The owner's VoxStage `Qwen3-14B-Q4_K_M.gguf` and `Qwen3-30B-A3B-Instruct-2507-Q4_K_M.gguf` were read-only hash-checked and registered locally. Both are post-trained GGUF inference checkpoints, not MLX Base DAPT checkpoints; the exam loader currently accepts MLX models. Machine paths and external-reference records are omitted from the public template.
 
 Historical deferred checks: unquantized `Qwen/Qwen3-14B-Base` is approximately 29.5 GB; `mlx-community/Qwen3-14B-4bit` and `Qwen/Qwen3-14B-MLX-4bit` derive from post-trained weights; provenance of `jesusoctavioas/Qwen3-8B-Base-mlx-4Bit` remains unverified. Upstream mlx-lm issue #1786 reported a first-backward failure for Qwen3-30B-A3B LoRA. These are review notes, not current compatibility guarantees.
+
+## ADHD-03 R3 scale repeat — 2026-10-02
+
+Preparation author: Codex / GPT-6 (root). The new official 1.7B Base is physically stored in the shared AI-Models generators directory and linked as `models/qwen3-1.7b-base`. The private manifest records all eight source URLs, pinned revision, dates, licenses, sizes, SHA-256 values, logical/resolved paths and shared deletion/reacquisition rules. No existing shared checkpoint was replaced or duplicated. Exact model fingerprint: `d9123e52c87b5e3e2c2e3288ce1ee5e1c9095c9ad03538af781b38e682aea98a`.
+
+MLX loaded the unchanged bf16 weights; all 196 target linear layers were wrapped for rank16/alpha32/dropout0 shape inspection, with 17432576 trainable parameters (1738007552 total after wrapping). No forward, gradient, optimizer, baseline exam or training loop was performed. Tokenizer JSON/merges/vocab hashes equal the existing 0.6B files. Native selftests passed; `scripts/run_adhd03.py` default readiness-only resource/exam check passed. Those were preparation checks; the later authorized run measured MLX peak8.9565GiB and final logged training throughput856.50 tokens/s. Training took5298.4 seconds (2.036x the 0.6B R3 phase).
+
+The ADHD-03 config copies completed revised R3 seed42 exactly, including original-only corpus, 500 updates, all layers, sequence1024, batch1/accum8 and EOS-prefix/checkpoint50. The owner subsequently said to begin. Its own complete untouched baselines and both post-exam protocols are now complete; size effects use each model's own pre/post gains. The endpoint does not establish factual learning speed or an additional adaptation advantage. See `results/ADHD03_FINDINGS.md`, the frozen historical plan, and private RUNS/execution records. No additional run is queued.
