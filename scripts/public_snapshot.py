@@ -30,6 +30,7 @@ FILES = (
     "experiments/adhd-01/config.json", "experiments/adhd-01/requirements.lock.txt",
     "results/SOL6_REPORT.md", "results/FINDINGS.md", "results/ADHD02_FINDINGS.md", "experiments/adhd-02/PLAN.md", "results/ADHD03_FINDINGS.md",
     "experiments/adhd-03/PLAN.md", "experiments/adhd-03/config.json",
+    "experiments/adhd-04/PLAN.md", "results/ADHD04_FINDINGS.md",
 ) + tuple(f"docs/{name}.md" for name in DOCS) + tuple(f"scripts/{name}" for name in SCRIPTS)
 MARKERS = tuple(f"{name}/.gitkeep" for name in (
     "data/raw", "data/processed", "data/train", "data/validation", "data/test",

@@ -145,3 +145,12 @@ New validation packing differs from original R1, so validation losses are compar
 ### Revised packing comparison limit
 
 Codex / GPT-6 (root), 2026-10-01. The EOS-prefixed packer advances 1024 stream tokens/window; original R1 advanced 1025. The same full corpus now yields 17022 windows versus R1's 17006. Although Base/corpus/seed/steps/effective batch/peak LR/rank are held, a different window count changes the seeded shuffle and exact sampled token windows. R1b is therefore a new protocol, not an exact same-token intervention isolating only the prefix. Validation boundaries differ too. Report the mitigation and sink/PPL evidence without attributing every QA difference to EOS alone; revised R3/R4 use R1b as their reference. No training change or additional test made by this observation.
+
+## PubMedQA `acc_norm` is length-biased for yes/no/maybe options
+
+Claude (reviewer, Claude Opus 5.5), 2026-10-02. Found while reviewing ADHD-03; details are in the reviewer section of `results/ADHD03_FINDINGS.md`.
+
+- **Problem.** Character-normalised scoring favours " maybe" (6 characters) over " no" (3). The 1.7B base model never predicts "no" under it. The 0.6B model predicts "yes" for 995–998 of 1,000 items in every run, so its PubMedQA score has always been the majority-class rate.
+- **Effect.** ADHD-03's "significant PubMedQA decline" (−3.7 pp) is an artifact. Raw log-probability accuracy rises from 57.3% to 62.4%.
+- **Decision.** For PubMedQA, report raw accuracy (`acc_raw`, already stored for every run) as the primary score from now on and keep the frozen `acc_norm` value for the record. No exam file or past result changes.
+- **Not yet done.** `exam.py compare` still reports `acc_norm` only. A later scoring version should add raw accuracy for exams with short fixed options.

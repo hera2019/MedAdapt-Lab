@@ -81,12 +81,25 @@ def evaluate(model, windows, batch_size, max_batches):
     return total / count if count else float("nan")
 
 
-def train(model, tokenizer, train_texts, valid_texts, cfg, run_dir, log=print, resume=False):
+def snapshot_steps(cfg):
+    """Steps listed in cfg["snapshot_steps"] ("250,500,1000"), excluding the final step."""
+    raw = str(cfg.get("snapshot_steps") or "")
+    steps = sorted({int(x) for x in raw.replace(" ", "").split(",") if x})
+    if any(s <= 0 for s in steps):
+        raise ValueError("snapshot steps must be positive")
+    return [s for s in steps if s < cfg["iters"]]
+
+
+def train(model, tokenizer, train_texts, valid_texts, cfg, run_dir, log=print, resume=False, on_snapshot=None):
     """Train in place. Returns a dict of results; writes train_log.jsonl into run_dir.
 
     With cfg["checkpoint_every"] > 0 a checkpoint is kept in run_dir/checkpoint; resume=True
     continues from it (same data order, optimizer moments and schedule position).
+    on_snapshot(step) is called after each step listed in cfg["snapshot_steps"]: one long run
+    then yields intermediate adapters for a learning curve. They are not annealed like a run
+    that ends at that step, because the learning-rate schedule spans the whole run.
     """
+    snapshots = set(snapshot_steps(cfg))
     run_dir = Path(run_dir)
     run_dir.mkdir(parents=True, exist_ok=True)
     mx.random.seed(cfg["seed"])
@@ -206,6 +219,8 @@ def train(model, tokenizer, train_texts, valid_texts, cfg, run_dir, log=print, r
                 f", lr {entry['lr']:.2e}, |g| {entry['grad_norm']:.3f}, {entry['tokens_per_s']:.0f} tok/s, "
                 f"peak {entry['peak_mem_gb']:.2f} GB")
             window_start, window_tokens, window_loss, window_count = time.time(), 0, 0.0, 0
+        if on_snapshot and step in snapshots:
+            on_snapshot(step)
         if cfg.get("checkpoint_every", 0) and step % cfg["checkpoint_every"] == 0 and step < cfg["iters"]:
             save_checkpoint(run_dir, model, optimizer, {"step": step, "cfg": cfg, "history": history,
                                                        "first_val": first_val})
@@ -295,9 +310,17 @@ def main():
             baselines[prefix] = found
 
     print(f"== training {run_id}" + (" (resumed)" if args.resume else ""))
-    results = train(model, tokenizer, read_texts(train_path), read_texts(valid_path), cfg, run_dir,
-                    resume=bool(args.resume))
     adapter_dir = ROOT / "adapters" / run_id
+
+    def save_snapshot(step):
+        snap_id = f"{run_id}-step{step:05d}"
+        snap_dir = adapter_dir / f"step-{step:05d}"
+        sha = save_trainable(model, snap_dir / "adapter.safetensors")
+        atomic_json(snap_dir / "adapter_config.json", adapter_config(cfg, snap_id, model_info, sha, data_hashes))
+        print(f"== snapshot saved: {snap_dir.relative_to(ROOT)}")
+
+    results = train(model, tokenizer, read_texts(train_path), read_texts(valid_path), cfg, run_dir,
+                    resume=bool(args.resume), on_snapshot=save_snapshot)
     adapter_sha = save_trainable(model, adapter_dir / "adapter.safetensors")
     atomic_json(adapter_dir / "adapter_config.json", adapter_config(cfg, run_id, model_info, adapter_sha, data_hashes))
     run_record = {"run_id": run_id, "model": model_info, "config": cfg, "data": data_hashes,
@@ -313,6 +336,24 @@ def main():
             run_record[f"exam_{prefix}"] = {"before": baselines[prefix].name, "after": after.name,
                                             "comparison": str(report.relative_to(ROOT))}
             print(f"== report: {report}")
+        # Learning curve: examine every snapshot the same way, swapping only the adapter weights.
+        snaps = []
+        for step in snapshot_steps(cfg):
+            snap_dir = adapter_dir / f"step-{step:05d}"
+            snap_cfg = json.loads((snap_dir / "adapter_config.json").read_text(encoding="utf-8"))
+            if sha256(snap_dir / "adapter.safetensors") != snap_cfg["adapter_sha256"]:
+                raise RuntimeError(f"snapshot hash mismatch: {snap_dir}")
+            model.load_weights(list(mx.load(str(snap_dir / "adapter.safetensors")).items()), strict=False)
+            info = {"run_id": snap_cfg["run_id"], "path": str(snap_dir), "sha256": snap_cfg["adapter_sha256"]}
+            entry = {"step": step, "adapter": str(snap_dir.relative_to(ROOT))}
+            for prefix, names in (("eos", None), ("none", PPL_EXAMS)):
+                print(f"== exam snapshot step {step} (PPL prefix {prefix})")
+                after = run_exams(model, tokenizer, label=f"after:{snap_cfg['run_id']}", model_info=model_info,
+                                  limit=exam_limit, adapter_info=info, train_run=run_id, names=names, ppl_prefix=prefix)
+                report = compare(baselines[prefix].name, after.name)
+                entry[f"exam_{prefix}"] = {"after": after.name, "comparison": str(report.relative_to(ROOT))}
+            snaps.append(entry)
+        run_record["snapshots"] = snaps
     atomic_json(run_dir / "run.json", run_record)
     shutil.rmtree(run_dir / CKPT, ignore_errors=True)  # the adapter supersedes the checkpoint
     print(f"== done: {run_dir}")

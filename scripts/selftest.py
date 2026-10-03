@@ -196,6 +196,13 @@ def main():
               and '"resumed_at_step": 10' in resumed_log,
               "resume from the step-10 checkpoint reproduces the uninterrupted run")
 
+        # Snapshots fire only at listed steps before the final one (step 20 is final, 30 is beyond).
+        snapped = []
+        cfg_snap = dict(cfg, iters=20, snapshot_steps="10,20,30", log_every=5, eval_every=10)
+        train(tiny_model(), tok, [FACT * 20] * 10, [FACT * 20] * 2, cfg_snap, tmp / "run_snap",
+              log=lambda *_: None, on_snapshot=snapped.append)
+        check(snapped == [10], "snapshots fire only at listed steps before the final step")
+
         full = tiny_model()
         cfg_full = dict(cfg, mode="full", lr=1e-3, iters=20, cache_limit_gib=0.25, wired_limit_gib=1.0)
         original_full = dict(tree_flatten(full.parameters()))

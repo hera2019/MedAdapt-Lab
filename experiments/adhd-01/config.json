@@ -37,7 +37,8 @@
     "cache_limit_gib": 2.0,
     "wired_limit_gib": -1.0,
     "window_prefix_eos": true,
-    "checkpoint_every": 50
+    "checkpoint_every": 50,
+    "snapshot_steps": ""
   },
   "notes": "num_layers 0 = all layers. For --mode full use --lr 2e-5. Settings are a starting point, not a tuned result. window_prefix_eos (added 2026-10-01, Claude) keeps EOS at position 0 of every training window; R1 ran without it. checkpoint_every enables --resume after a crash. Operational defaults aligned on 2026-10-01 by Codex / GPT-6 with completed R1b/R3/R4: batch1/accum8, eval100, cache2GiB. Effective batch, context, rank and peak LR unchanged. Completed run records retain exact launch settings; no active run changed."
 }

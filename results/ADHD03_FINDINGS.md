@@ -108,3 +108,22 @@ The 1.7B training phase took 2.036x the 0.6B reference time, while final logged 
 - 1.7B none: baseline `20261002T063409Z-baseline`; post `20261002T083302Z-after-20261002T061417Z-lora-adhd03-r3-17b-seed42`.
 
 Raw papers, exam items, predictions, detailed run/guard/provenance records, weights, private Chinese explanation and local development history are excluded from the public snapshot. This English report contains aggregate results only.
+
+## Reviewer check (Claude, Claude Opus 5.5, 2026-10-02)
+
+**The PubMedQA decline is a scoring artifact; the design error is Claude's.** The frozen primary score (`acc_norm`) divides each option's log-probability by its character length. That suits multi-word options, but PubMedQA's options are " yes" (4 characters), " no" (3) and " maybe" (6). The division systematically favours " maybe" and penalises " no". Prediction counts (yes / no / maybe; gold distribution 55.2 / 33.8 / 11.0%):
+
+| Model | `acc_norm` picks | Raw log-probability picks | Raw accuracy |
+|---|---|---|---:|
+| 0.6B base | 995 / 0 / 5 | 999 / 1 / 0 | 55.1% |
+| 0.6B R3 | 998 / 0 / 2 | 998 / 2 / 0 | 55.4% |
+| 1.7B base | 489 / **0** / 511 | 882 / 55 / 63 | 57.3% |
+| 1.7B after ADHD-03 | 443 / 3 / 554 | 781 / 155 / 64 | 62.4% |
+
+- The 0.6B model answers "yes" to almost every item under either score. Its constant 55.2% is the majority-class rate, so PubMedQA carried no information about 0.6B in any run.
+- Under `acc_norm`, 1.7B almost never chooses "no". The reported −3.7 pp "significant decline" reflects that bias, not lost ability.
+- Raw log-probability is the appropriate score for these short, fixed options. Under it, 1.7B improves from 57.3% to 62.4% and starts answering "no".
+- The raw score was already recorded for every run (`acc_raw`), so nothing needs re-running. Report PubMedQA with raw accuracy from now on and keep the frozen `acc_norm` value for the record.
+- The A/B paper exams are much less exposed to this: their options were written to similar lengths (max/min ≤ 1.5), and the trained-minus-held-out contrast cancels any bias common to both groups.
+
+**What ADHD-03 adds.** A trained-paper-specific gain now appears in five independent trajectories: 0.6B R3 seeds 42/43, the two ADHD-02 runs and 1.7B. The estimates range from +2.9 to +5.0 pp, and 1.7B gives +5.0 [+1.1, +8.8]. At this dose the larger model does not learn more per exposure. Its validation loss was lowest at step 300 and then rose, which suggests 1.65 epochs at lr 2e-4 is already past the useful point for 1.7B. A dose-response run would test this.

@@ -62,3 +62,14 @@ Tune on training validation loss; exams measure outcomes rather than selecting s
 ## ADHD-03 completed scale repeat
 
 2026-10-02, Codex / GPT-6 (root). Owner-authorized pinned 1.7B Base original-only R3 seed42/500 updates completed with its own full untouched baselines and both post-exam protocols. All 30 captured files, exact same-R3 settings, full item counts and adapter hashes verified. Trained-paper QA improved +7.660 pp, held-out QA +2.632 pp; the trained-specific gain difference versus 0.6B is +0.867 pp [-3.670,+5.344], so no larger adaptation gain is demonstrated. PubMedQA primary scoring declined and general PPL worsened; raw-score sensitivity is preserved. Training took88.31 minutes, MLX peak8.957GiB, max swap0.781GiB; native run/guard exited0 and sleep prevention ended. One seed, reused exams and architecture/compute differences limit conclusions; no faster factual-learning claim or extra run. See [the findings](../results/ADHD03_FINDINGS.md). Captured preparation labels are historical; private RUNS/execution records hold completed status.
+
+## ADHD-04 completed dose-response experiment
+
+2026-10-03 JST. Plan/snapshot implementation: Claude / Opus5.5; executor/verifier/analyst/report author: Codex / GPT-6 (root). Both independent Base-start trajectories and all eight adapter-point EOS/no-EOS exam pairs completed, with one attempt each, guard exit0 and no stop/recovery/AGX hint. D1 full-output verification gated D2. All61 captured fingerprints, exact configs/own-model baselines, adapter hashes and complete exam counts/IDs were reverified; private execution evidence and RUNS linkage are retained. Owned pipeline/guard/caffeinate processes ended; task sleep prevention released.
+
+| Condition | Model | Examined updates | Trained-specific gain at final (pp,95% paper-cluster CI) | Final ADHD / general EOS PPL change | Training / guarded minutes |
+|---|---|---|---|---|---|
+| D1 | 0.6B Base | 250,500,1000,2000 | +4.200 [-0.555,+8.780] | +38.88% / +123.45% | 173.93 / 225.78 |
+| D2 | 1.7B Base | 150,300,500,1000 | +8.727 [+4.426,+12.879] | +3.91% / +27.39% | 176.70 / 297.79 |
+
+Gains subtract each model's own held-out gain from trained-paper gain; PPL percentages are relative to its own baseline, positive is worse. D1 QA peaked among sampled points at500; all its extra-gain CIs include zero. D2 trained QA/extra gain rose through1000, but domain PPL was best at300 and general PPL worsened at every dose in both protocols. No common optimum or faster factual-learning claim follows. PubMedQA raw is the predeclared ADHD-04 reporting score with frozen norm retained;0.6B majority-class behavior is uninformative. Same-seed500 anchors, longer-cosine/exposure confounds, dependent points, one-seed/reused-exam/multiplicity/architecture/compute limits and all adverse/null results appear in [the signed findings](../results/ADHD04_FINDINGS.md). No further experiment is selected.
