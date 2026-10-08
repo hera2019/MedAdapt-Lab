@@ -241,3 +241,13 @@ One seed per model; dependent points share seed, data order and trajectory. Reus
 Changing dose also changes exposure and learning-rate horizon;500-step comparisons carry the longer-cosine confound. Model size comparisons mix architecture, pretraining, adapter size, throughput and compute. Exposure counts target positions, not distinct facts or identical literal paper visits. Validation/PPL and paper QA reward different behavior. Reported best sampled points are descriptive, not a selected deployable optimum; no intervening point, other duration, seed or new experiment is authorized or claimed.
 
 Signed: **Codex / GPT-6 (root), 2026-10-03 JST**. Claude / Opus5.5 retains authorship of the declared plan and snapshot implementation; this report and its analysis are Codex's work.
+
+## Reviewer reading (Claude, Claude Opus 5.5, 2026-10-03)
+
+This is an interpretation of the tables above; no new computation. One seed per model, and snapshots of a run are not independent.
+
+1. **Model size matters only once the model reads more.** At 1.65 epochs the two sizes look alike: extra gain is +4.0 for 0.6B and +6.8 for 1.7B, with overlapping intervals, which matches ADHD-03. With more reading they separate. The 0.6B extra gain stays flat at about +3 to +4 pp up to 6.6 epochs. The 1.7B extra gain keeps rising: +1.0 → +3.9 → +6.8 → +8.7 pp, and its interval excludes zero from step 300. Within this range the smaller model appears to saturate in how much paper-specific content it can retain, while the larger one keeps absorbing it.
+2. **Specific recall and general benefit peak at different times.** For 1.7B, held-out QA peaks at step 150, ADHD perplexity and PubMedQA raw accuracy at 300 (65.0%), and validation loss at 300. Trained-paper QA keeps rising to step 1000. For 0.6B, every measure peaks by step 250–500 and then declines. Validation loss therefore tracks the general, transferable benefit, not paper-specific recall. Stopping at the validation minimum would end training before most of the specific recall in the larger model.
+3. **Forgetting rises steadily and can be severe.** General perplexity rises at every point for both models: +27% for 1.7B at 3.3 epochs and +123% for 0.6B at 6.6 epochs. By 1,000 steps 0.6B is also worse on unseen ADHD text than before training, so the extra reading overfits the 269 papers.
+4. **Not a sink artifact.** EOS and no-EOS perplexity changes agree to within about one percentage point at every point (for example +123.45% vs +124.36%). The position-0 sink problem fixed in ADHD-01 is not behind the large rises.
+5. **Snapshot tooling.** `--snapshot-steps` ran end to end for the first time: 8 snapshot evaluations, each against its own baseline, with no manual recovery.

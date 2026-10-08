@@ -6,6 +6,7 @@ data/train/
 data/validation/
 data/test/
 data/augment/
+data/synthetic/
 models/
 adapters/
 results/*

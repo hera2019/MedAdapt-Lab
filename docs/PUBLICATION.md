@@ -47,3 +47,11 @@ Operator: Codex / GPT-6 (root). Explicit scope expands from53 to57 files: ADHD-0
 ## ADHD-04 aggregate update — 2026-10-03
 
 Operator: Codex / GPT-6 (root). Explicit scope adds the declared English ADHD-04 PLAN and signed aggregate findings,59 files total. Claude / Opus5.5 retains plan/snapshot authorship; Codex owns execution and analysis. All dose points, same-seed anchors, adverse PPL/transfer/null outcomes and dependent-point/schedule/multiplicity limits are retained. The runner, preflight, detailed runs/guards, hash manifest, item results, Chinese explanation, corpus/exams and model/adapter weights stay private. Content/history audit, native selftest, prepare/push and exact remote blob verification follow; this paragraph does not itself assert publication success.
+
+## Final report update — 2026-10-08
+
+Operator: Claude (reviewer, Claude Opus 5.5), with the owner's approval to publish the project report.
+- Scope adds `results/FINAL_REPORT.md`, `results/ADHD05_FINDINGS.md`, `experiments/adhd-05/PLAN.md`, `experiments/adhd-05/DATA_TASKS.md`, `scripts/synth_trials.py` and `scripts/synth_report.py`.
+- The README now describes the completed project.
+- Fictional-trial records, texts, exam items, per-item results, the generated corpus, adapters and the Chinese companions stay local. The generator code is published, but its records depend on the local corpus vocabulary and are not distributed.
+- New files were screened for fictional drug names, personal paths and non-English text before the standard audit.

@@ -23,7 +23,7 @@ DOCS = (
 SCRIPTS = (
     "build_exams.py", "common.py", "exam.py", "hf_download.py", "lm.py",
     "pmc_adhd.py", "prepare_dapt.py", "qgen_helper.py", "seal_benchmarks.py",
-    "selftest.py", "setup_env.sh", "storage.py", "train.py", "public_snapshot.py", "resource_guard.py", "sink_probe.py", "augment_check.py", "prepare_adhd02.py", "run_adhd03.py",
+    "selftest.py", "setup_env.sh", "storage.py", "train.py", "public_snapshot.py", "resource_guard.py", "sink_probe.py", "augment_check.py", "prepare_adhd02.py", "run_adhd03.py", "synth_trials.py", "synth_report.py",
 )
 FILES = (
     ".gitignore", "AGENTS.md", "CLAUDE.md", "README.md", "requirements.in",
@@ -31,6 +31,8 @@ FILES = (
     "results/SOL6_REPORT.md", "results/FINDINGS.md", "results/ADHD02_FINDINGS.md", "experiments/adhd-02/PLAN.md", "results/ADHD03_FINDINGS.md",
     "experiments/adhd-03/PLAN.md", "experiments/adhd-03/config.json",
     "experiments/adhd-04/PLAN.md", "results/ADHD04_FINDINGS.md",
+    "experiments/adhd-05/PLAN.md", "experiments/adhd-05/DATA_TASKS.md", "results/ADHD05_FINDINGS.md",
+    "results/FINAL_REPORT.md",
 ) + tuple(f"docs/{name}.md" for name in DOCS) + tuple(f"scripts/{name}" for name in SCRIPTS)
 MARKERS = tuple(f"{name}/.gitkeep" for name in (
     "data/raw", "data/processed", "data/train", "data/validation", "data/test",
@@ -128,6 +130,7 @@ def main():
     parser.add_argument("action", choices=("check", "prepare"))
     parser.add_argument("--author-name")
     parser.add_argument("--author-email")
+    parser.add_argument("--message", help="commit message (default: the generic snapshot message)")
     args = parser.parse_args()
     if args.action == "prepare" and not (args.author_name and args.author_email):
         parser.error("prepare requires the actual operator's public author name and email")
@@ -158,7 +161,7 @@ def main():
             params = ["commit-tree", tree]
             if parent:
                 params += ["-p", parent]
-            commit = git(*params, env=env, data=b"Publish reviewed MedAdapt Lab framework snapshot\n").decode().strip()
+            commit = git(*params, env=env, data=((args.message or "Publish reviewed MedAdapt Lab framework snapshot").rstrip() + "\n").encode()).decode().strip()
             report["public_history_commits"] = verify_history(commit, allowed)
             git("update-ref", "refs/heads/public", commit, parent or "0" * 40)
             report.update(commit=commit, tree=tree)

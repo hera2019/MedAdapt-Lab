@@ -9,6 +9,7 @@ Exams are listed in eval/exams/index.json (built once by build_exams.py, then fr
 Every item result is kept, so a comparison can say *which* questions changed.
 """
 import argparse
+import os
 from contextlib import contextmanager
 import datetime as dt
 import hashlib
@@ -22,7 +23,8 @@ from common import ROOT, atomic_json, sha256
 
 SCORING_VERSION = 1
 INDEX = ROOT / "eval/exams/index.json"
-RESULTS = ROOT / "results"
+# MEDADAPT_RESULTS redirects the ledger and exam outputs, for smoke tests that must not touch results/.
+RESULTS = Path(os.environ.get("MEDADAPT_RESULTS", ROOT / "results"))
 MIN_ITEMS = 10  # below this no exam is called significant, whatever the interval says
 EXAM_CACHE_LIMIT = 512 * 1024 ** 2  # Free allocator cache only, not live tensor memory.
 
@@ -375,18 +377,20 @@ def main():
     r.add_argument("--exams", nargs="+")
     r.add_argument("--limit", type=int, help="first N items per exam; quick check only")
     r.add_argument("--window", type=int, default=1024)
+    r.add_argument("--index", default=str(INDEX), help="exam index (default: the frozen ADHD-01 exams)")
     r.add_argument("--ppl-prefix", choices=("eos", "none"), default="eos",
                    help="eos = frozen ADHD-01 protocol; none = supplementary protocol added 2026-10-01")
     c = sub.add_parser("compare")
     c.add_argument("run_a")
     c.add_argument("run_b")
+    c.add_argument("--index", default=str(INDEX))
     sub.add_parser("log")
     args = p.parse_args()
     if args.command == "log":
         write_log_md()
         print(RESULTS / "EXAM_LOG.md")
     elif args.command == "compare":
-        print(compare(args.run_a, args.run_b))
+        print(compare(args.run_a, args.run_b, index_path=args.index))
     else:
         from mlx_lm import load
         from lm import load_adapter
@@ -398,13 +402,14 @@ def main():
             adapter_info = {"run_id": cfg["run_id"], "path": str(Path(args.adapter).resolve()), "sha256": cfg["adapter_sha256"]}
         label = args.label or (f"after:{adapter_info['run_id']}" if adapter_info else "baseline")
         run_dir = run_exams(model, tokenizer, label=label, model_info=model_info, adapter_info=adapter_info,
-                            names=args.exams, limit=args.limit, window=args.window, ppl_prefix=args.ppl_prefix)
+                            names=args.exams, limit=args.limit, window=args.window, ppl_prefix=args.ppl_prefix,
+                            index_path=args.index)
         print(f"saved {run_dir}")
         if adapter_info:
-            base = find_baseline(model_info, json.loads(INDEX.read_text())["exam_version"], window=args.window,
-                                 ppl_prefix=args.ppl_prefix, need=args.exams)
+            base = find_baseline(model_info, json.loads(Path(args.index).read_text())["exam_version"],
+                                 window=args.window, ppl_prefix=args.ppl_prefix, need=args.exams)
             if base:
-                print(f"compare: {compare(base.name, run_dir.name)}")
+                print(f"compare: {compare(base.name, run_dir.name, index_path=args.index)}")
 
 
 if __name__ == "__main__":

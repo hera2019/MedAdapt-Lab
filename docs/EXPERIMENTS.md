@@ -73,3 +73,20 @@ Tune on training validation loss; exams measure outcomes rather than selecting s
 | D2 | 1.7B Base | 150,300,500,1000 | +8.727 [+4.426,+12.879] | +3.91% / +27.39% | 176.70 / 297.79 |
 
 Gains subtract each model's own held-out gain from trained-paper gain; PPL percentages are relative to its own baseline, positive is worse. D1 QA peaked among sampled points at500; all its extra-gain CIs include zero. D2 trained QA/extra gain rose through1000, but domain PPL was best at300 and general PPL worsened at every dose in both protocols. No common optimum or faster factual-learning claim follows. PubMedQA raw is the predeclared ADHD-04 reporting score with frozen norm retained;0.6B majority-class behavior is uninformative. Same-seed500 anchors, longer-cosine/exposure confounds, dependent points, one-seed/reused-exam/multiplicity/architecture/compute limits and all adverse/null results appear in [the signed findings](../results/ADHD04_FINDINGS.md). No further experiment is selected.
+
+## ADHD-05 and project completion
+
+2026-10-04, Claude (reviewer, Claude Opus 5.5).
+
+ADHD-05 trained on 400 fictional trials whose facts were drawn at random, so the baseline is chance (25%):
+- P: 150 trials, each with four different texts;
+- R: 150 trials, each with one text read four times;
+- C: 100 trials never described, as a control.
+
+Three runs were made (0.6B seeds 42 and 43, 1.7B seed 42), 600 updates each, with snapshots at about 1, 2, 4 and 8 passes.
+- The control stayed at chance.
+- Recall emerged between about 4 and 8 passes.
+- P beat R at the end by +4.5, +6.3 and +7.6 pp, with all intervals excluding zero.
+- General perplexity rose 37–94×.
+
+See [the ADHD-05 findings](../results/ADHD05_FINDINGS.md), [the plan](../experiments/adhd-05/PLAN.md) and [the final report](../results/FINAL_REPORT.md), which summarises ADHD-01 to ADHD-05. The project is complete; no further run is planned. Untested next steps, should work resume: general-text replay, lower learning rates, retrieval.

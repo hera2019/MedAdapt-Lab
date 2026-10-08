@@ -243,6 +243,12 @@ def adapter_config(cfg, run_id, model_info, adapter_sha, data_hashes):
 PPL_EXAMS = ("adhd_new_ppl", "general_ppl")
 
 
+def shown(path):
+    """Project-relative path when inside the project (normal runs), absolute otherwise (smoke tests)."""
+    path = Path(path)
+    return str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path)
+
+
 def main():
     config = json.loads(CONFIG.read_text(encoding="utf-8"))
     defaults = config["training"]
@@ -259,6 +265,7 @@ def main():
             p.add_argument("--" + key.replace("_", "-"), type=kind, default=value)
     p.add_argument("--skip-exam", action="store_true", help="smoke test only; no before/after record")
     p.add_argument("--exam-limit", type=int, help="quick partial exam (recorded as partial)")
+    p.add_argument("--exam-index", default=None, help="exam index for all exams (default: frozen ADHD-01 exams)")
     p.add_argument("--resume", metavar="RUN_ID", help="continue a crashed run from its last checkpoint; "
                    "config, data and flags come from the saved run, other options are ignored")
     args = p.parse_args()
@@ -269,19 +276,22 @@ def main():
         launch = json.loads((run_dir / "launch.json").read_text(encoding="utf-8"))
         cfg, model_path, train_path, valid_path = launch["config"], launch["model"], launch["train"], launch["valid"]
         skip_exam, exam_limit = launch["skip_exam"], launch["exam_limit"]
+        exam_index = launch.get("exam_index")
     else:
         if not args.model:
             p.error("--model is required (or set model_path in config.json)")
         cfg = {key: getattr(args, key) for key in defaults}
         model_path, train_path, valid_path = args.model, args.train, args.valid
         skip_exam, exam_limit = args.skip_exam, args.exam_limit
+        exam_index = args.exam_index
         stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         run_id = f"{stamp}-{cfg['mode']}" + (f"-{args.name}" if args.name else "")
         run_dir = ROOT / "experiments/adhd-01/runs" / run_id
         run_dir.mkdir(parents=True, exist_ok=True)
 
     from mlx_lm import load
-    from exam import compare, find_baseline, load_index, model_fingerprint, run_exams
+    from exam import INDEX, compare, find_baseline, load_index, model_fingerprint, run_exams
+    index_path = Path(exam_index) if exam_index else INDEX
     model_info = {"path": str(Path(model_path).resolve()), "fingerprint": model_fingerprint(model_path)}
     data_hashes = {"train": sha256(train_path), "valid": sha256(valid_path)}
     if args.resume:
@@ -290,21 +300,26 @@ def main():
     else:
         atomic_json(run_dir / "launch.json", {"config": cfg, "model": model_path, "train": train_path,
                                              "valid": valid_path, "skip_exam": skip_exam, "exam_limit": exam_limit,
+                                             "exam_index": exam_index,
                                              "model_info": model_info, "data": data_hashes})
     model, tokenizer = load(model_path)
 
     # Baselines are taken from the untouched base weights, so they must exist before training.
+    # The no-prefix protocol covers whichever perplexity exams this index has.
+    ppl_names = [n for n in PPL_EXAMS if n in load_index(index_path)["exams"]]
+    protocols = [("eos", None)] + ([("none", ppl_names)] if ppl_names else [])
     baselines = {}
     if not skip_exam:
-        version = load_index()["exam_version"]
-        for prefix, names in (("eos", None), ("none", PPL_EXAMS)):
+        version = load_index(index_path)["exam_version"]
+        for prefix, names in protocols:
             found = None if exam_limit else find_baseline(model_info, version, ppl_prefix=prefix, need=names)
             if found is None:
                 if args.resume:
                     raise RuntimeError(f"baseline ({prefix}) missing on resume; weights are no longer untouched")
                 print(f"== exam before training (baseline, PPL prefix {prefix})")
                 found = run_exams(model, tokenizer, label="baseline" if not exam_limit else "baseline-partial",
-                                  model_info=model_info, limit=exam_limit, names=names, ppl_prefix=prefix)
+                                  model_info=model_info, limit=exam_limit, names=names, ppl_prefix=prefix,
+                                  index_path=index_path)
             else:
                 print(f"== baseline already recorded ({prefix}): {found.name}")
             baselines[prefix] = found
@@ -328,13 +343,14 @@ def main():
 
     if not skip_exam:
         adapter_info = {"run_id": run_id, "path": str(adapter_dir), "sha256": adapter_sha}
-        for prefix, names in (("eos", None), ("none", PPL_EXAMS)):
+        for prefix, names in protocols:
             print(f"== exam after training (PPL prefix {prefix})")
             after = run_exams(model, tokenizer, label=f"after:{run_id}", model_info=model_info, limit=exam_limit,
-                              adapter_info=adapter_info, train_run=run_id, names=names, ppl_prefix=prefix)
-            report = compare(baselines[prefix].name, after.name)
+                              adapter_info=adapter_info, train_run=run_id, names=names, ppl_prefix=prefix,
+                              index_path=index_path)
+            report = compare(baselines[prefix].name, after.name, index_path=index_path)
             run_record[f"exam_{prefix}"] = {"before": baselines[prefix].name, "after": after.name,
-                                            "comparison": str(report.relative_to(ROOT))}
+                                            "comparison": shown(report)}
             print(f"== report: {report}")
         # Learning curve: examine every snapshot the same way, swapping only the adapter weights.
         snaps = []
@@ -346,12 +362,13 @@ def main():
             model.load_weights(list(mx.load(str(snap_dir / "adapter.safetensors")).items()), strict=False)
             info = {"run_id": snap_cfg["run_id"], "path": str(snap_dir), "sha256": snap_cfg["adapter_sha256"]}
             entry = {"step": step, "adapter": str(snap_dir.relative_to(ROOT))}
-            for prefix, names in (("eos", None), ("none", PPL_EXAMS)):
+            for prefix, names in protocols:
                 print(f"== exam snapshot step {step} (PPL prefix {prefix})")
                 after = run_exams(model, tokenizer, label=f"after:{snap_cfg['run_id']}", model_info=model_info,
-                                  limit=exam_limit, adapter_info=info, train_run=run_id, names=names, ppl_prefix=prefix)
-                report = compare(baselines[prefix].name, after.name)
-                entry[f"exam_{prefix}"] = {"after": after.name, "comparison": str(report.relative_to(ROOT))}
+                                  limit=exam_limit, adapter_info=info, train_run=run_id, names=names, ppl_prefix=prefix,
+                                  index_path=index_path)
+                report = compare(baselines[prefix].name, after.name, index_path=index_path)
+                entry[f"exam_{prefix}"] = {"after": after.name, "comparison": shown(report)}
             snaps.append(entry)
         run_record["snapshots"] = snaps
     atomic_json(run_dir / "run.json", run_record)
